@@ -1,0 +1,7 @@
+C:\Users\Sofi\source\repos\TCPChat\TCPClientChat\bin\Debug\TCPClientChat.exe.config
+C:\Users\Sofi\source\repos\TCPChat\TCPClientChat\bin\Debug\TCPClientChat.exe
+C:\Users\Sofi\source\repos\TCPChat\TCPClientChat\bin\Debug\TCPClientChat.pdb
+C:\Users\Sofi\source\repos\TCPChat\TCPClientChat\obj\Debug\TCPClientChat.csproj.CoreCompileInputs.cache
+C:\Users\Sofi\source\repos\TCPChat\TCPClientChat\obj\Debug\TCPClientChat.exe
+C:\Users\Sofi\source\repos\TCPChat\TCPClientChat\obj\Debug\TCPClientChat.pdb
+C:\Users\Sofi\source\repos\TCPChat\TCPClientChat\obj\Debug\TCPClientChat.csprojResolveAssemblyReference.cache

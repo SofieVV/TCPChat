@@ -1,0 +1,9 @@
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\bin\Debug\TCPServerChat.exe.config
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\bin\Debug\TCPServerChat.exe
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\bin\Debug\TCPServerChat.pdb
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\obj\Debug\TCPServerChat.csproj.CoreCompileInputs.cache
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\obj\Debug\TCPServerChat.exe
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\obj\Debug\TCPServerChat.pdb
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\obj\Debug\TCPServerChat.csprojResolveAssemblyReference.cache
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\bin\Debug\TCPChat.Common.dll
+C:\Users\Sofi\source\repos\TCPChat\TCPServerChat\bin\Debug\TCPChat.Common.pdb
