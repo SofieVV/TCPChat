@@ -14,6 +14,7 @@ namespace TCPServerChat
     {
         public static ManualResetEvent allDone = new ManualResetEvent(false);
         public static List<Socket> clientList = new List<Socket>();
+        public static string content = string.Empty;
         private const int port = 1020;
 
         static void Main(string[] args)
@@ -76,12 +77,12 @@ namespace TCPServerChat
                 if (bytesRead > 0)
                 {
                     state.stringBuilder.Append(Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
-                    string content = state.stringBuilder.ToString();
+                    content = state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
                     Console.WriteLine(content);
                     Send(client, content);
-                    Broadcast(content);
+                    Broadcast(client, content);
                     client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallback), state);
                 }
             }
@@ -112,13 +113,14 @@ namespace TCPServerChat
             }
         }
 
-        private static void Broadcast (string message)
+        private static void Broadcast (Socket currentClient, string message)
         {
             byte[] messageData = Encoding.UTF8.GetBytes(message);
 
             foreach (var client in clientList)
             {
-                client.BeginSend(messageData, 0, messageData.Length, 0, new AsyncCallback(BroadcastCallback), client);
+                if (client != currentClient)
+                    client.BeginSend(messageData, 0, messageData.Length, 0, new AsyncCallback(BroadcastCallback), client);
             }
         }
 

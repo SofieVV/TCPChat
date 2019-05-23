@@ -3,3 +3,4 @@ C:\Users\Sofi\source\repos\TCPChat\TCPChat.Common\bin\Debug\TCPChat.Common.pdb
 C:\Users\Sofi\source\repos\TCPChat\TCPChat.Common\obj\Debug\TCPChat.Common.csproj.CoreCompileInputs.cache
 C:\Users\Sofi\source\repos\TCPChat\TCPChat.Common\obj\Debug\TCPChat.Common.dll
 C:\Users\Sofi\source\repos\TCPChat\TCPChat.Common\obj\Debug\TCPChat.Common.pdb
+C:\Users\Sofi\source\repos\TCPChat\TCPChat.Common\obj\Debug\TCPChat.Common.csprojResolveAssemblyReference.cache

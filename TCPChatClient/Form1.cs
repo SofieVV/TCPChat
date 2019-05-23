@@ -17,6 +17,7 @@ namespace TCPChatClient
     public partial class TCPClient : Form
     {
         private const int port = 1020;
+        private static string response = string.Empty;
         private static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         private static IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
         private static Socket client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -30,6 +31,7 @@ namespace TCPChatClient
         private void ConnectButton_Click(object sender, EventArgs e)
         {
             StartClient();
+            Receive(client);
         }
 
         private void SendButton_Click(object sender, EventArgs e)
@@ -43,11 +45,10 @@ namespace TCPChatClient
             try
             {
                 Send(client, MessageTextBox.Text);
-                Receive(client);
             }
             catch(Exception e)
             {
-                ChatWriteLine(e.Message);
+                ChatWriteLine("Please connect first.");
             }
         }
 
@@ -98,16 +99,12 @@ namespace TCPChatClient
             {
                 StateObject state = (StateObject)ar.AsyncState;
                 Socket client = state.workSocket;
-                string response = "";
                 int bytesRead = client.EndReceive(ar);
 
-                if (bytesRead > 0)
-                {
-                    state.stringBuilder.Append(Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
-                    client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-                    response = state.stringBuilder.ToString();
-                    state.stringBuilder.Clear();
-                }
+                state.stringBuilder.Append(Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
+                client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+                response = state.stringBuilder.ToString();
+                state.stringBuilder.Clear();
 
                 ChatWriteLine(response);
             }
@@ -128,7 +125,7 @@ namespace TCPChatClient
             try
             {
                 Socket client = (Socket)ar.AsyncState;
-                int bytesSent = client.EndSend(ar);
+                client.EndSend(ar);
             }
             catch (Exception e)
             {
