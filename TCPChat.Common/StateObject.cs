@@ -10,7 +10,7 @@ namespace TCPChat.Common
     public class StateObject
     {
         public Socket workSocket = null;
-        public const int bufferSize = 1024;
+        public const int bufferSize = 4;
         public byte[] buffer = new byte[bufferSize];
         public StringBuilder stringBuilder = new StringBuilder();
     }

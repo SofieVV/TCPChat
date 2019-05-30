@@ -17,10 +17,13 @@ namespace TCPChatClient
     public partial class TCPClient : Form
     {
         private const int port = 1020;
+        private const int fixedSize = 4;
         private static string response = string.Empty;
         private static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         private static IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
         private static Socket client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        private static int receivedMessageSize = 0;
+        private static byte[] receivedMessageData = null;
 
 
         public TCPClient()
@@ -46,7 +49,7 @@ namespace TCPChatClient
             {
                 Send(client, MessageTextBox.Text);
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 ChatWriteLine("Please connect first.");
             }
@@ -79,13 +82,31 @@ namespace TCPChatClient
             }
         }
 
+
         public void Receive (Socket client)
         {
             try
             {
                 StateObject state = new StateObject();
                 state.workSocket = client;
-                client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+                client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveSizeCallback), state);
+            }
+            catch (Exception e)
+            {
+                ChatWriteLine(e.Message);
+            }
+        }
+
+        public void RecieveSizeCallback(IAsyncResult ar)
+        {
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket client = state.workSocket;
+
+            try
+            {
+                receivedMessageSize = BitConverter.ToInt32(state.buffer, 0);
+                receivedMessageData = new byte[receivedMessageSize];
+                client.BeginReceive(receivedMessageData, 0, receivedMessageSize, 0, new AsyncCallback(ReceiveCallback), state);
             }
             catch (Exception e)
             {
@@ -101,12 +122,15 @@ namespace TCPChatClient
                 Socket client = state.workSocket;
                 int bytesRead = client.EndReceive(ar);
 
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
-                client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-                response = state.stringBuilder.ToString();
-                state.stringBuilder.Clear();
+                if (bytesRead > 0)
+                {
+                    state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, bytesRead));
+                    client.BeginReceive(receivedMessageData, 0, receivedMessageSize, 0, new AsyncCallback(ReceiveCallback), state);
+                    response = state.stringBuilder.ToString();
+                    state.stringBuilder.Clear();
 
-                ChatWriteLine(response);
+                    ChatWriteLine(response);
+                }
             }
             catch (Exception e)
             {
@@ -116,8 +140,24 @@ namespace TCPChatClient
 
         public void Send(Socket client, string data)
         {
+            byte[] size = BitConverter.GetBytes(data.Length);
+            byte[] fixedByteArray = new byte[fixedSize];
+            List<byte> listOfData = new List<byte>();
+
+            for (int i = 0; i < fixedSize; i++)
+            {
+                if (size.Length > i)
+                    fixedByteArray[i] = size[i];
+                else
+                    fixedByteArray[i] = 0;
+            }
+
             byte[] byteData = Encoding.UTF8.GetBytes(data);
-            client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), client);
+            listOfData.AddRange(fixedByteArray);
+            listOfData.AddRange(byteData);
+
+            var dataToSend = listOfData.ToArray();
+            client.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), client);
         }
 
         public void SendCallback (IAsyncResult ar)
