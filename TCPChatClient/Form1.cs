@@ -125,7 +125,7 @@ namespace TCPChatClient
                 if (bytesRead > 0)
                 {
                     state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, bytesRead));
-                    client.BeginReceive(receivedMessageData, 0, receivedMessageSize, 0, new AsyncCallback(ReceiveCallback), state);
+                    client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveSizeCallback), state);
                     response = state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
@@ -140,17 +140,8 @@ namespace TCPChatClient
 
         public void Send(Socket client, string data)
         {
-            byte[] size = BitConverter.GetBytes(data.Length);
-            byte[] fixedByteArray = new byte[fixedSize];
+            byte[] fixedByteArray = BitConverter.GetBytes(data.Length);
             List<byte> listOfData = new List<byte>();
-
-            for (int i = 0; i < fixedSize; i++)
-            {
-                if (size.Length > i)
-                    fixedByteArray[i] = size[i];
-                else
-                    fixedByteArray[i] = 0;
-            }
 
             byte[] byteData = Encoding.UTF8.GetBytes(data);
             listOfData.AddRange(fixedByteArray);

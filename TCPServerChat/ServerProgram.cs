@@ -82,7 +82,7 @@ namespace TCPServerChat
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("Client Disconnected.");
             }
         }
 
@@ -103,8 +103,7 @@ namespace TCPServerChat
 
                     Console.WriteLine(content);
                     Send(client, content);
-                    Broadcast(client, content);
-                    client.BeginReceive(receivedMessageData, 0, receivedMessageSize, 0, new AsyncCallback(ReadCallback), state);
+                    client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadSizeCallback), state);
                 }
             }
             catch (Exception)
@@ -116,24 +115,16 @@ namespace TCPServerChat
 
         private static void Send(Socket client, string data)
         {
-            byte[] size = BitConverter.GetBytes(data.Length);
-            byte[] fixedByteArray = new byte[fixedSize];
+            byte[] fixedByteArray = BitConverter.GetBytes(data.Length);
             List<byte> listOfData = new List<byte>();
-
-            for (int i = 0; i < fixedSize; i++)
-            {
-                if (size.Length > i)
-                    fixedByteArray[i] = size[i];
-                else
-                    fixedByteArray[i] = 0;
-            }
 
             byte[] byteData = Encoding.UTF8.GetBytes(data);
             listOfData.AddRange(fixedByteArray);
             listOfData.AddRange(byteData);
-
             var dataToSend = listOfData.ToArray();
+
             client.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), client);
+            Broadcast(client, dataToSend);
         }
 
         private static void SendCallback(IAsyncResult ar)
@@ -149,14 +140,25 @@ namespace TCPServerChat
             }
         }
 
-        private static void Broadcast (Socket currentClient, string message)
+        private static void Broadcast (Socket currentClient, byte[] messageData)
         {
-            byte[] messageData = Encoding.UTF8.GetBytes(message);
-
             foreach (var client in clientList)
             {
                 if (client != currentClient)
-                    Send(client, message);
+                    client.BeginSend(messageData, 0, messageData.Length, 0, new AsyncCallback(BroadcastCallback), client);
+            }
+        }
+
+        private static void BroadcastCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket client = (Socket)ar.AsyncState;
+                int bytesSent = client.EndSend(ar);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Client Disconnected.");
             }
         }
     }
