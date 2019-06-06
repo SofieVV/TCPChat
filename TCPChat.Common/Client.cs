@@ -5,12 +5,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TCPServerChat
+namespace TCPChat.Common
 {
-    class Client
+    public class Client
     {
         public string ClientName { get; set; }
 
-        public Socket ClientSocket { get; set; }
+        public Socket Socket { get; set; }
     }
 }

@@ -13,10 +13,10 @@ namespace TCPServerChat
     class ServerProgram
     {
         private static ManualResetEvent allDone = new ManualResetEvent(false);
-        private static List<Socket> clientList = new List<Socket>();
+        private static List<Client> clientList = new List<Client>();
         private static string content = string.Empty;
+        private static string clientName = string.Empty;
         private const int port = 1020;
-        private const int fixedSize = 4;
         private static int receivedMessageSize = 0;
         private static byte[] receivedMessageData = null;
 
@@ -63,16 +63,39 @@ namespace TCPServerChat
             Socket client = listener.EndAccept(ar);
 
             StateObject state = new StateObject();
-            state.workSocket = client;
-            client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadSizeCallback), state);
+            state.client.Socket = client;
 
-            clientList.Add(client);
+            if (!clientList.Contains(state.client))
+            {
+                state.client.Socket.BeginReceive(state.clientName, 0, StateObject.nameSize, 0, new AsyncCallback(ReadClientNameCallback), state);
+            }
+
+            clientList.Add(state.client);
+            state.client.Socket.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadSizeCallback), state);
         }
 
+        public static void ReadClientNameCallback(IAsyncResult ar)
+        {
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket client = state.client.Socket;
+
+            try
+            {
+                int bytesRead = client.EndReceive(ar);
+
+                state.stringBuilder.Append(Encoding.UTF8.GetString(state.clientName, 0, bytesRead));
+                state.client.ClientName = state.stringBuilder.ToString();
+                state.stringBuilder.Clear();
+            }
+            catch (Exception)
+            {
+
+            }
+        }
         public static void ReadSizeCallback(IAsyncResult ar)
         {
             StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.workSocket;
+            Socket client = state.client.Socket;
 
             try
             {
@@ -80,8 +103,9 @@ namespace TCPServerChat
                 receivedMessageData = new byte[receivedMessageSize];
                 client.BeginReceive(receivedMessageData, 0, receivedMessageSize, 0, new AsyncCallback(ReadCallback), state);
             }
-            catch (Exception e)
+            catch (Exception)
             {
+                clientList.RemoveAll(c => c.Socket == client);
                 Console.WriteLine("Client Disconnected.");
             }
         }
@@ -89,7 +113,7 @@ namespace TCPServerChat
         public static void ReadCallback(IAsyncResult ar)
         {
             StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.workSocket;
+            Socket client = state.client.Socket;
 
             try
             {
@@ -98,7 +122,7 @@ namespace TCPServerChat
                 if (bytesRead > 0)
                 {
                     state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, bytesRead));
-                    content = state.stringBuilder.ToString();
+                    content = state.client.ClientName + ": " + state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
                     Console.WriteLine(content);
@@ -108,7 +132,6 @@ namespace TCPServerChat
             }
             catch (Exception)
             {
-                clientList.Remove(client);
                 Console.WriteLine("Client Disconnected.");
             }
         }
@@ -142,10 +165,12 @@ namespace TCPServerChat
 
         private static void Broadcast (Socket currentClient, byte[] messageData)
         {
+            string message = Encoding.UTF8.GetString(messageData);
+
             foreach (var client in clientList)
             {
-                if (client != currentClient)
-                    client.BeginSend(messageData, 0, messageData.Length, 0, new AsyncCallback(BroadcastCallback), client);
+                if (client.Socket != currentClient)
+                    client.Socket.BeginSend(messageData, 0, messageData.Length, 0, new AsyncCallback(BroadcastCallback), client.Socket);
             }
         }
 

@@ -17,14 +17,12 @@ namespace TCPChatClient
     public partial class TCPClient : Form
     {
         private const int port = 1020;
-        private const int fixedSize = 4;
         private static string response = string.Empty;
         private static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         private static IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
         private static Socket client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         private static int receivedMessageSize = 0;
         private static byte[] receivedMessageData = null;
-
 
         public TCPClient()
         {
@@ -33,8 +31,32 @@ namespace TCPChatClient
 
         private void ConnectButton_Click(object sender, EventArgs e)
         {
-            StartClient();
-            Receive(client);
+
+            if (clientNameTextBox.Text.Length > StateObject.nameSize)
+            {
+                MessageBox.Show("Username must be shorter that 20 characters!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                clientNameTextBox.Clear();
+            }
+            else
+            {
+                clientNameTextBox.ReadOnly = true;
+                StartClient();
+                SendName(client, clientNameTextBox.Text);
+                Receive(client);
+            }
+        }
+
+        public BindingList<string> Names { get; set; }
+
+        public void RemoveName()
+        {
+            var pesho = Names.FirstOrDefault(n => n == "Pesho");
+            Names.Remove(pesho);
+        }
+
+        public void AddName()
+        {
+            Names.Add("Pesho");
         }
 
         private void SendButton_Click(object sender, EventArgs e)
@@ -82,13 +104,32 @@ namespace TCPChatClient
             }
         }
 
+        public void SendName(Socket client, string name)
+        {
+            byte[] nameData = Encoding.UTF8.GetBytes(name);
+            client.BeginSend(nameData, 0, nameData.Length, 0, new AsyncCallback(SendNameCallback), client);
+        }
+
+        public void SendNameCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket client = (Socket)ar.AsyncState;
+                client.EndSend(ar);
+            }
+            catch (Exception e)
+            {
+                ChatWriteLine(e.Message);
+            }
+        }
+
 
         public void Receive (Socket client)
         {
             try
             {
                 StateObject state = new StateObject();
-                state.workSocket = client;
+                state.client.Socket = client;
                 client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveSizeCallback), state);
             }
             catch (Exception e)
@@ -100,7 +141,7 @@ namespace TCPChatClient
         public void RecieveSizeCallback(IAsyncResult ar)
         {
             StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.workSocket;
+            Socket client = state.client.Socket;
 
             try
             {
@@ -119,7 +160,7 @@ namespace TCPChatClient
             try
             {
                 StateObject state = (StateObject)ar.AsyncState;
-                Socket client = state.workSocket;
+                Socket client = state.client.Socket;
                 int bytesRead = client.EndReceive(ar);
 
                 if (bytesRead > 0)

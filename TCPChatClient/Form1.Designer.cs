@@ -33,11 +33,13 @@
             this.SendButton = new System.Windows.Forms.Button();
             this.MessageTextBox = new System.Windows.Forms.TextBox();
             this.ConnectButton = new System.Windows.Forms.Button();
+            this.clientNameTextBox = new System.Windows.Forms.TextBox();
+            this.ClientNameLable = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // ChatTextBox
             // 
-            this.ChatTextBox.Location = new System.Drawing.Point(12, 12);
+            this.ChatTextBox.Location = new System.Drawing.Point(13, 49);
             this.ChatTextBox.Multiline = true;
             this.ChatTextBox.Name = "ChatTextBox";
             this.ChatTextBox.ReadOnly = true;
@@ -49,7 +51,7 @@
             // 
             this.ClientListBox.FormattingEnabled = true;
             this.ClientListBox.ItemHeight = 16;
-            this.ClientListBox.Location = new System.Drawing.Point(555, 12);
+            this.ClientListBox.Location = new System.Drawing.Point(556, 49);
             this.ClientListBox.Name = "ClientListBox";
             this.ClientListBox.Size = new System.Drawing.Size(148, 436);
             this.ClientListBox.TabIndex = 1;
@@ -57,9 +59,9 @@
             // SendButton
             // 
             this.SendButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.SendButton.Location = new System.Drawing.Point(556, 455);
+            this.SendButton.Location = new System.Drawing.Point(556, 508);
             this.SendButton.Name = "SendButton";
-            this.SendButton.Size = new System.Drawing.Size(147, 44);
+            this.SendButton.Size = new System.Drawing.Size(147, 45);
             this.SendButton.TabIndex = 3;
             this.SendButton.Text = "Send";
             this.SendButton.UseVisualStyleBackColor = true;
@@ -67,7 +69,7 @@
             // 
             // MessageTextBox
             // 
-            this.MessageTextBox.Location = new System.Drawing.Point(12, 454);
+            this.MessageTextBox.Location = new System.Drawing.Point(13, 508);
             this.MessageTextBox.Multiline = true;
             this.MessageTextBox.Name = "MessageTextBox";
             this.MessageTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -76,14 +78,32 @@
             // 
             // ConnectButton
             // 
-            this.ConnectButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.ConnectButton.Location = new System.Drawing.Point(12, 510);
+            this.ConnectButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.ConnectButton.Location = new System.Drawing.Point(557, 5);
             this.ConnectButton.Name = "ConnectButton";
-            this.ConnectButton.Size = new System.Drawing.Size(691, 43);
+            this.ConnectButton.Size = new System.Drawing.Size(147, 38);
             this.ConnectButton.TabIndex = 4;
             this.ConnectButton.Text = "Connect ";
             this.ConnectButton.UseVisualStyleBackColor = true;
             this.ConnectButton.Click += new System.EventHandler(this.ConnectButton_Click);
+            // 
+            // clientNameTextBox
+            // 
+            this.clientNameTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.clientNameTextBox.Location = new System.Drawing.Point(73, 12);
+            this.clientNameTextBox.Name = "clientNameTextBox";
+            this.clientNameTextBox.Size = new System.Drawing.Size(477, 26);
+            this.clientNameTextBox.TabIndex = 5;
+            // 
+            // ClientNameLable
+            // 
+            this.ClientNameLable.AutoSize = true;
+            this.ClientNameLable.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.ClientNameLable.Location = new System.Drawing.Point(9, 14);
+            this.ClientNameLable.Name = "ClientNameLable";
+            this.ClientNameLable.Size = new System.Drawing.Size(58, 20);
+            this.ClientNameLable.TabIndex = 6;
+            this.ClientNameLable.Text = "Name:";
             // 
             // TCPClient
             // 
@@ -91,6 +111,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(715, 565);
+            this.Controls.Add(this.ClientNameLable);
+            this.Controls.Add(this.clientNameTextBox);
             this.Controls.Add(this.ConnectButton);
             this.Controls.Add(this.SendButton);
             this.Controls.Add(this.MessageTextBox);
@@ -110,6 +132,8 @@
         private System.Windows.Forms.Button SendButton;
         private System.Windows.Forms.TextBox MessageTextBox;
         private System.Windows.Forms.Button ConnectButton;
+        private System.Windows.Forms.TextBox clientNameTextBox;
+        private System.Windows.Forms.Label ClientNameLable;
     }
 }
 
