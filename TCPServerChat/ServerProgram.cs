@@ -85,9 +85,10 @@ namespace TCPServerChat
                 state.client.ClientName = state.stringBuilder.ToString();
 
                 clientList.Add(state.client);
-                Send(state, state.client.ClientName + " has connected.", Command.Add);
 
+                Send(state, " has connected.", Command.Add);
                 state.stringBuilder.Clear();
+
             }
             catch (Exception)
             {
@@ -108,7 +109,7 @@ namespace TCPServerChat
             catch (Exception)
             {
                 clientList.RemoveAll(c => c.Socket == client);
-                Send(state, state.client.ClientName + " has disconnected.", Command.Remove);
+                Send(state, " has disconnected.", Command.Remove);
                 Console.WriteLine("Client Disconnected.");
             }
         }
@@ -148,9 +149,17 @@ namespace TCPServerChat
             var dataToSend = listOfData.ToArray();
 
             if (command == Command.Updated)
+            {
                 state.client.Socket.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), state.client.Socket);
-
-            Broadcast(state.client.Socket, dataToSend);
+                Broadcast(state.client.Socket, dataToSend);
+            }
+            else
+            {
+                foreach (var client in clientList)
+                {
+                    client.Socket.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), client.Socket);
+                }
+            }
         }
 
         public static void SendCallback(IAsyncResult ar)

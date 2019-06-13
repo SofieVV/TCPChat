@@ -137,7 +137,6 @@ namespace TCPChatClient
             {
                 client.BeginReceive(state.clientNameBuffer, 0, StateObject.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
                 Command command = (Command)BitConverter.ToInt32(state.command, 0);
-                ClientListBox.DataSource = connectedClients;
 
                 switch (command)
                 {
@@ -154,6 +153,8 @@ namespace TCPChatClient
                     case Command.Updated:
                             break;
                 }
+
+
             }
             catch (Exception e)
             {
