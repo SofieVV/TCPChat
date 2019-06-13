@@ -23,18 +23,19 @@ namespace TCPChatClient
         private static Socket client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         private static int receivedMessageSize = 0;
         private static byte[] receivedMessageData = null;
+        private static List<string> connectedClients = new List<string>();
+        private static string newClient = string.Empty;
 
         public TCPClient()
         {
             InitializeComponent();
         }
-
         private void ConnectButton_Click(object sender, EventArgs e)
         {
 
             if (clientNameTextBox.Text.Length > StateObject.nameSize)
             {
-                MessageBox.Show("Username must be shorter that 20 characters!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Username must be shorter that 10 characters!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 clientNameTextBox.Clear();
             }
             else
@@ -46,22 +47,11 @@ namespace TCPChatClient
             }
         }
 
-        public BindingList<string> Names { get; set; }
-
-        public void RemoveName()
-        {
-            var pesho = Names.FirstOrDefault(n => n == "Pesho");
-            Names.Remove(pesho);
-        }
-
-        public void AddName()
-        {
-            Names.Add("Pesho");
-        }
-
         private void SendButton_Click(object sender, EventArgs e)
         {
-            SendMessage();
+            if (MessageTextBox.Text != string.Empty)
+                SendMessage();
+
             MessageTextBox.Clear();
         }
 
@@ -73,7 +63,7 @@ namespace TCPChatClient
             }
             catch(Exception)
             {
-                ChatWriteLine("Please connect first.");
+                //ChatWriteLine("Please connect first.");
             }
         }
 
@@ -85,7 +75,7 @@ namespace TCPChatClient
             }
             catch (Exception)
             {
-                ChatWriteLine("You are already connected.");
+                //ChatWriteLine("You are already connected.");
             }
         }
 
@@ -100,7 +90,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                ChatWriteLine(e.Message);
+                //ChatWriteLine(e.Message);
             }
         }
 
@@ -119,7 +109,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                ChatWriteLine(e.Message);
+                //ChatWriteLine(e.Message);
             }
         }
 
@@ -130,15 +120,68 @@ namespace TCPChatClient
             {
                 StateObject state = new StateObject();
                 state.client.Socket = client;
-                client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveSizeCallback), state);
+                client.BeginReceive(state.command, 0, StateObject.enumCommand, 0, new AsyncCallback(UpdateClientListCallback), state);
             }
             catch (Exception e)
             {
-                ChatWriteLine(e.Message);
+                //ChatWriteLine(e.Message);
             }
         }
 
-        public void RecieveSizeCallback(IAsyncResult ar)
+        public void UpdateClientListCallback(IAsyncResult ar)
+        {
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket client = state.client.Socket;
+
+            try
+            {
+                client.BeginReceive(state.clientNameBuffer, 0, StateObject.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
+                Command command = (Command)BitConverter.ToInt32(state.command, 0);
+                ClientListBox.DataSource = connectedClients;
+
+                switch (command)
+                {
+                    case Command.Add:
+                        {
+                            connectedClients.Add(newClient);
+                            break;
+                        }
+                    case Command.Remove:
+                        {
+                            connectedClients.Remove(newClient);
+                            break;
+                        }
+                    case Command.Updated:
+                            break;
+                }
+            }
+            catch (Exception e)
+            {
+                //ChatWriteLine(e.Message);
+            }
+        }
+
+        public void GetClientNameCallback(IAsyncResult ar)
+        {
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket client = state.client.Socket;
+
+            try
+            {
+                int bytesRead = client.EndReceive(ar);
+
+                state.stringBuilder.Append(Encoding.UTF8.GetString(state.clientNameBuffer, 0, bytesRead));
+                newClient = state.stringBuilder.ToString().TrimEnd('\0');
+                state.stringBuilder.Clear();
+
+                client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
+            }
+            catch (Exception e)
+            {
+                //ChatWriteLine(e.Message);
+            }
+        }
+        public void RecieveMessageSizeCallback(IAsyncResult ar)
         {
             StateObject state = (StateObject)ar.AsyncState;
             Socket client = state.client.Socket;
@@ -151,7 +194,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                ChatWriteLine(e.Message);
+                //ChatWriteLine(e.Message);
             }
         }
 
@@ -166,27 +209,25 @@ namespace TCPChatClient
                 if (bytesRead > 0)
                 {
                     state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, bytesRead));
-                    client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveSizeCallback), state);
+                    client.BeginReceive(state.command, 0, StateObject.enumCommand, 0, new AsyncCallback(UpdateClientListCallback), state);
                     response = state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
-                    ChatWriteLine(response);
+                    ChatWriteLine(newClient + response);
                 }
             }
             catch (Exception e)
             {
-                ChatWriteLine(e.Message);
+                //ChatWriteLine(e.Message);
             }
         }
 
         public void Send(Socket client, string data)
         {
-            byte[] fixedByteArray = BitConverter.GetBytes(data.Length);
             List<byte> listOfData = new List<byte>();
 
-            byte[] byteData = Encoding.UTF8.GetBytes(data);
-            listOfData.AddRange(fixedByteArray);
-            listOfData.AddRange(byteData);
+            listOfData.AddRange(BitConverter.GetBytes(data.Length));
+            listOfData.AddRange(Encoding.UTF8.GetBytes(data));
 
             var dataToSend = listOfData.ToArray();
             client.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), client);
@@ -201,7 +242,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                ChatWriteLine(e.Message);
+                //ChatWriteLine(e.Message);
             }
         }
 
