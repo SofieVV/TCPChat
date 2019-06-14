@@ -33,14 +33,20 @@ namespace TCPChatClient
         private void ConnectButton_Click(object sender, EventArgs e)
         {
 
-            if (clientNameTextBox.Text.Length > StateObject.nameSize)
+            if (clientNameTextBox.Text.Length > StateObject.nameSize || clientNameTextBox.Text.Length <= 0)
             {
                 MessageBox.Show("Username must be shorter that 10 characters!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                clientNameTextBox.Clear();
+            }
+            else if (ClientListBox.Items.Contains(clientNameTextBox.Text))
+            {
+                MessageBox.Show("Username is already taken!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 clientNameTextBox.Clear();
             }
             else
             {
                 clientNameTextBox.ReadOnly = true;
+                ConnectButton.Enabled = false;
                 StartClient();
                 SendName(client, clientNameTextBox.Text);
                 Receive(client);
