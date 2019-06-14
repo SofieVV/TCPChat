@@ -88,7 +88,6 @@ namespace TCPServerChat
 
                 Send(state, " has connected.", Command.Add);
                 state.stringBuilder.Clear();
-
             }
             catch (Exception)
             {
@@ -142,8 +141,8 @@ namespace TCPServerChat
         {
             List<byte> listOfData = new List<byte>();
 
-            listOfData.AddRange(BitConverter.GetBytes((int)command));
             listOfData.AddRange(state.clientNameBuffer);
+            listOfData.AddRange(BitConverter.GetBytes((int)command));
             listOfData.AddRange(BitConverter.GetBytes(data.Length));
             listOfData.AddRange(Encoding.UTF8.GetBytes(data));
             var dataToSend = listOfData.ToArray();

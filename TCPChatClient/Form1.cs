@@ -120,41 +120,7 @@ namespace TCPChatClient
             {
                 StateObject state = new StateObject();
                 state.client.Socket = client;
-                client.BeginReceive(state.command, 0, StateObject.enumCommand, 0, new AsyncCallback(UpdateClientListCallback), state);
-            }
-            catch (Exception e)
-            {
-                //ChatWriteLine(e.Message);
-            }
-        }
-
-        public void UpdateClientListCallback(IAsyncResult ar)
-        {
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.client.Socket;
-
-            try
-            {
                 client.BeginReceive(state.clientNameBuffer, 0, StateObject.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
-                Command command = (Command)BitConverter.ToInt32(state.command, 0);
-
-                switch (command)
-                {
-                    case Command.Add:
-                        {
-                            connectedClients.Add(newClient);
-                            break;
-                        }
-                    case Command.Remove:
-                        {
-                            connectedClients.Remove(newClient);
-                            break;
-                        }
-                    case Command.Updated:
-                            break;
-                }
-
-
             }
             catch (Exception e)
             {
@@ -173,7 +139,40 @@ namespace TCPChatClient
 
                 state.stringBuilder.Append(Encoding.UTF8.GetString(state.clientNameBuffer, 0, bytesRead));
                 newClient = state.stringBuilder.ToString().TrimEnd('\0');
+
+                client.BeginReceive(state.command, 0, StateObject.enumCommand, 0, new AsyncCallback(UpdateClientListCallback), state);
                 state.stringBuilder.Clear();
+            }
+            catch (Exception e)
+            {
+                //ChatWriteLine(e.Message);
+            }
+        }
+
+        public void UpdateClientListCallback(IAsyncResult ar)
+        {
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket client = state.client.Socket;
+
+            try
+            {
+                Command command = (Command)BitConverter.ToInt32(state.command, 0);
+
+                switch (command)
+                {
+                    case Command.Add:
+                        {
+                            ClientListBox.Items.Add(newClient);
+                            break;
+                        }
+                    case Command.Remove:
+                        {
+                            ClientListBox.Items.Remove(newClient);
+                            break;
+                        }
+                    case Command.Updated:
+                            break;
+                }
 
                 client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
             }
@@ -182,6 +181,7 @@ namespace TCPChatClient
                 //ChatWriteLine(e.Message);
             }
         }
+
         public void RecieveMessageSizeCallback(IAsyncResult ar)
         {
             StateObject state = (StateObject)ar.AsyncState;
@@ -210,7 +210,7 @@ namespace TCPChatClient
                 if (bytesRead > 0)
                 {
                     state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, bytesRead));
-                    client.BeginReceive(state.command, 0, StateObject.enumCommand, 0, new AsyncCallback(UpdateClientListCallback), state);
+                    client.BeginReceive(state.clientNameBuffer, 0, StateObject.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
                     response = state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
