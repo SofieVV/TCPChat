@@ -11,10 +11,8 @@ namespace TCPChat.Common
     {
         public Client client = new Client();
         public const int bufferSize = 4;
-        public const int nameSize = 10;
         public const int enumCommand = 4;
         public byte[] command = new byte[enumCommand];
-        public byte[] clientNameBuffer = new byte[nameSize];
         public byte[] buffer = new byte[bufferSize];
         public StringBuilder stringBuilder = new StringBuilder();
     }

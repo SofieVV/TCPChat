@@ -33,7 +33,7 @@ namespace TCPChatClient
         private void ConnectButton_Click(object sender, EventArgs e)
         {
 
-            if (clientNameTextBox.Text.Length > StateObject.nameSize || clientNameTextBox.Text.Length <= 0)
+            if (clientNameTextBox.Text.Length > Client.nameSize || clientNameTextBox.Text.Length <= 0)
             {
                 MessageBox.Show("Username must be shorter that 10 characters!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 clientNameTextBox.Clear();
@@ -91,8 +91,6 @@ namespace TCPChatClient
             {
                 Socket client = (Socket)ar.AsyncState;
                 client.EndConnect(ar);
-
-                ChatWriteLine($"Socket connected to {client.RemoteEndPoint.ToString()}");
             }
             catch (Exception e)
             {
@@ -126,7 +124,7 @@ namespace TCPChatClient
             {
                 StateObject state = new StateObject();
                 state.client.Socket = client;
-                client.BeginReceive(state.clientNameBuffer, 0, StateObject.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
+                client.BeginReceive(state.client.clientNameBuffer, 0, Client.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
             }
             catch (Exception e)
             {
@@ -143,7 +141,7 @@ namespace TCPChatClient
             {
                 int bytesRead = client.EndReceive(ar);
 
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.clientNameBuffer, 0, bytesRead));
+                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, bytesRead));
                 newClient = state.stringBuilder.ToString().TrimEnd('\0');
 
                 client.BeginReceive(state.command, 0, StateObject.enumCommand, 0, new AsyncCallback(UpdateClientListCallback), state);
@@ -168,7 +166,8 @@ namespace TCPChatClient
                 {
                     case Command.Add:
                         {
-                            ClientListBox.Items.Add(newClient);
+                            if (!ClientListBox.Items.Contains(newClient))
+                                ClientListBox.Items.Add(newClient);
                             break;
                         }
                     case Command.Remove:
@@ -216,7 +215,7 @@ namespace TCPChatClient
                 if (bytesRead > 0)
                 {
                     state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, bytesRead));
-                    client.BeginReceive(state.clientNameBuffer, 0, StateObject.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
+                    client.BeginReceive(state.client.clientNameBuffer, 0, Client.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
                     response = state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
