@@ -10,6 +10,6 @@ namespace TCPChat.Common
     {
         Add,
         Remove,
-        Updated
+        Message
     }
 }

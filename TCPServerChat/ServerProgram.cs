@@ -18,6 +18,7 @@ namespace TCPServerChat
         private const int port = 1020;
         private static int receivedMessageSize = 0;
         private static byte[] receivedMessageData = null;
+        private static List<string> clientNames = new List<string>();
 
         static void Main(string[] args)
         {
@@ -79,18 +80,14 @@ namespace TCPServerChat
 
             try
             {
-                int bytesRead = client.EndReceive(ar);
-
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, bytesRead));
-                state.client.ClientName = state.stringBuilder.ToString();
+                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.nameSize));
+                state.client.ClientName = state.stringBuilder.ToString().TrimEnd('\0');
 
                 clientList.Add(state.client);
+                clientNames.Add(state.client.ClientName);
                 state.stringBuilder.Clear();
 
-                foreach (var connectedClient in clientList)
-                {
-                    Send(connectedClient, " has connected.", Command.Add);
-                }
+                Send(state.client, ClientNames(clientList.ToArray()), Command.Add);
             }
             catch (Exception)
             {
@@ -110,8 +107,8 @@ namespace TCPServerChat
             }
             catch (Exception)
             {
-                clientList.RemoveAll(c => c.Socket == client);
-                Send(state.client, " has disconnected.", Command.Remove);
+                clientList.RemoveAll(c => c.Socket == state.client.Socket);
+                Send(state.client, " ", Command.Remove);
                 Console.WriteLine("Client Disconnected.");
             }
         }
@@ -131,54 +128,88 @@ namespace TCPServerChat
                     state.stringBuilder.Clear();
 
                     Console.WriteLine(state.client.ClientName + content);
-                    Send(state.client, content, Command.Updated);
+                    Send(state.client, content, Command.Message);
                     client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadSizeCallback), state);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Console.WriteLine("Client Disconnected.");
             }
         }
+
+        public static string ClientNames(params Client[] clients)
+        {
+            return string.Join(",", clients.Select(c => c.ClientName));
+        }
+
         public static void Send(Client client, string data, Command command)
         {
             List<byte> listOfData = new List<byte>();
+            byte[] dataToSend;
 
-            listOfData.AddRange(client.clientNameBuffer);
-            listOfData.AddRange(BitConverter.GetBytes((int)command));
-            listOfData.AddRange(BitConverter.GetBytes(data.Length));
-            listOfData.AddRange(Encoding.UTF8.GetBytes(data));
-            var dataToSend = listOfData.ToArray();
+            switch (command)
+            {
+                case Command.Add:
+                    {
+                        foreach (var connectedClient in clientList)
+                        {
+                            if (connectedClient == client)
+                            {
+                                listOfData.AddRange(BitConverter.GetBytes(data.Length));
+                                listOfData.AddRange(BitConverter.GetBytes((int)command));
+                                listOfData.AddRange(Encoding.UTF8.GetBytes(data));
 
-            if (command == Command.Add)
-            {
-                Broadcast(client.Socket, dataToSend);
-            }
-            else if (command == Command.Updated)
-            {
-                client.Socket.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), client.Socket);
-                Broadcast(client.Socket, dataToSend);
-            }
-            else
-            {
-                foreach (var clientForUpdate in clientList)
-                {
-                    clientForUpdate.Socket.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), clientForUpdate.Socket);
-                }
-            }
+                                dataToSend = listOfData.ToArray();
+                                client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                                listOfData.Clear();
+                                Array.Clear(dataToSend, 0, dataToSend.Length);
+                            }
+                            else
+                            {
+                                listOfData.AddRange(BitConverter.GetBytes(client.ClientName.Length));
+                                listOfData.AddRange(BitConverter.GetBytes((int)command));
+                                listOfData.AddRange(Encoding.UTF8.GetBytes(client.ClientName));
 
-        }
+                                dataToSend = listOfData.ToArray();
+                                connectedClient.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                                listOfData.Clear();
+                                Array.Clear(dataToSend, 0, dataToSend.Length);
+                            }
+                        }
 
-        public static void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                Socket client = (Socket)ar.AsyncState;
-                client.EndSend(ar);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Client Disconnected.");
+                        break;
+                    }
+                case Command.Remove:
+                    {
+                        listOfData.AddRange(BitConverter.GetBytes(data.Length));
+                        listOfData.AddRange(BitConverter.GetBytes((int)command));
+                        listOfData.AddRange(client.clientNameBuffer);
+                        listOfData.AddRange(Encoding.UTF8.GetBytes(data));
+
+                        dataToSend = listOfData.ToArray();
+
+                        foreach (var clientForUpdate in clientList)
+                        {
+                            clientForUpdate.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                        }
+
+                        break;
+                    }
+                case Command.Message:
+                    {
+                        listOfData.AddRange(BitConverter.GetBytes(data.Length));
+                        listOfData.AddRange(BitConverter.GetBytes((int)command));
+                        listOfData.AddRange(client.clientNameBuffer);
+                        listOfData.AddRange(Encoding.UTF8.GetBytes(data));
+
+                        dataToSend = listOfData.ToArray();
+
+                        client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                        Broadcast(client.Socket, dataToSend);
+
+                        break;
+                    }
             }
         }
 

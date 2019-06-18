@@ -23,7 +23,6 @@ namespace TCPChatClient
         private static Socket client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         private static int receivedMessageSize = 0;
         private static byte[] receivedMessageData = null;
-        private static List<string> connectedClients = new List<string>();
         private static string newClient = string.Empty;
 
         public TCPClient()
@@ -117,68 +116,12 @@ namespace TCPChatClient
             }
         }
 
-
         public void Receive (Socket client)
         {
             try
             {
                 StateObject state = new StateObject();
                 state.client.Socket = client;
-                client.BeginReceive(state.client.clientNameBuffer, 0, Client.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
-            }
-            catch (Exception e)
-            {
-                //ChatWriteLine(e.Message);
-            }
-        }
-
-        public void GetClientNameCallback(IAsyncResult ar)
-        {
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.client.Socket;
-
-            try
-            {
-                int bytesRead = client.EndReceive(ar);
-
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, bytesRead));
-                newClient = state.stringBuilder.ToString().TrimEnd('\0');
-
-                client.BeginReceive(state.command, 0, StateObject.enumCommand, 0, new AsyncCallback(UpdateClientListCallback), state);
-                state.stringBuilder.Clear();
-            }
-            catch (Exception e)
-            {
-                //ChatWriteLine(e.Message);
-            }
-        }
-
-        public void UpdateClientListCallback(IAsyncResult ar)
-        {
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.client.Socket;
-
-            try
-            {
-                Command command = (Command)BitConverter.ToInt32(state.command, 0);
-
-                switch (command)
-                {
-                    case Command.Add:
-                        {
-                            if (!ClientListBox.Items.Contains(newClient))
-                                ClientListBox.Items.Add(newClient);
-                            break;
-                        }
-                    case Command.Remove:
-                        {
-                            ClientListBox.Items.Remove(newClient);
-                            break;
-                        }
-                    case Command.Updated:
-                            break;
-                }
-
                 client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
             }
             catch (Exception e)
@@ -196,7 +139,9 @@ namespace TCPChatClient
             {
                 receivedMessageSize = BitConverter.ToInt32(state.buffer, 0);
                 receivedMessageData = new byte[receivedMessageSize];
-                client.BeginReceive(receivedMessageData, 0, receivedMessageSize, 0, new AsyncCallback(ReceiveCallback), state);
+
+                client.Receive(state.command, StateObject.enumCommand, SocketFlags.None);
+                ExecuteCommand(state);
             }
             catch (Exception e)
             {
@@ -204,23 +149,96 @@ namespace TCPChatClient
             }
         }
 
-        public void ReceiveCallback (IAsyncResult ar)
+        public void ExecuteCommand(StateObject state)
         {
             try
             {
-                StateObject state = (StateObject)ar.AsyncState;
-                Socket client = state.client.Socket;
-                int bytesRead = client.EndReceive(ar);
+                Command command = (Command)BitConverter.ToInt32(state.command, 0);
 
-                if (bytesRead > 0)
+                switch (command)
                 {
-                    state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, bytesRead));
-                    client.BeginReceive(state.client.clientNameBuffer, 0, Client.nameSize, 0, new AsyncCallback(GetClientNameCallback), state);
-                    response = state.stringBuilder.ToString();
-                    state.stringBuilder.Clear();
+                    case Command.Add:
+                        {
+                            string[] names = ReceiveClientListNames(state);
 
-                    ChatWriteLine(newClient + response);
+                            foreach (var name in names)
+                            {
+                                ClientListBox.Items.Add(name);
+                            }
+
+                            break;
+                        }
+                    case Command.Remove:
+                        {
+                            ClientListBox.Items.Remove(GetClientName(state));
+                            break;
+                        }
+                    case Command.Message:
+                        {
+                            string name = GetClientName(state);
+                            PrintMessage(state, name);
+                            break;
+                        }
                 }
+            }
+            catch (Exception e)
+            {
+                //ChatWriteLine(e.Message);
+            }
+        }
+
+        public string ReceiveMessage(StateObject state)
+        {
+            try
+            {
+                state.client.Socket.Receive(receivedMessageData, receivedMessageSize, SocketFlags.None);
+                string message = string.Empty; 
+
+                if (receivedMessageSize > 0)
+                {
+                    state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
+                    state.client.Socket.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
+                    message = state.stringBuilder.ToString();
+                    state.stringBuilder.Clear();
+                }
+
+                return message;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+
+        public string[] ReceiveClientListNames(StateObject state)
+        {
+            string connectedClientNames = ReceiveMessage(state);
+            return connectedClientNames.Split(',');
+        }
+
+        public string GetClientName(StateObject state)
+        {
+            try
+            {
+                state.client.Socket.Receive(state.client.clientNameBuffer, Client.nameSize, SocketFlags.None);
+                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.nameSize));
+                newClient = state.stringBuilder.ToString().TrimEnd('\0');
+
+                state.stringBuilder.Clear();
+                return newClient;
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+
+        public void PrintMessage (StateObject state, string clientName)
+        {
+            try
+            {
+                response = ReceiveMessage(state);
+                ChatWriteLine(clientName + response);
             }
             catch (Exception e)
             {
