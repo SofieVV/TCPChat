@@ -87,7 +87,7 @@ namespace TCPServerChat
                 clientNames.Add(state.client.ClientName);
                 state.stringBuilder.Clear();
 
-                Send(state.client, ClientNames(clientList.ToArray()), Command.Add);
+                Send(state.client, GetClientNames(clientList.ToArray()), Command.Add);
             }
             catch (Exception)
             {
@@ -138,15 +138,29 @@ namespace TCPServerChat
             }
         }
 
-        public static string ClientNames(params Client[] clients)
+        public static string GetClientNames(params Client[] clients)
         {
             return string.Join(",", clients.Select(c => c.ClientName));
         }
 
-        public static void Send(Client client, string data, Command command)
+        public static byte[] BuildMessage(int length, Command command, byte[] clientName, string message)
         {
             List<byte> listOfData = new List<byte>();
-            byte[] dataToSend;
+
+            listOfData.AddRange(BitConverter.GetBytes(length));
+            listOfData.AddRange(BitConverter.GetBytes((int)command));
+            if (clientName != null)
+                listOfData.AddRange(clientName);
+
+            listOfData.AddRange(Encoding.UTF8.GetBytes(message));
+
+            return listOfData.ToArray();
+        } 
+
+        public static void Send(Client client, string data, Command command)
+        {
+            //List<byte> listOfData = new List<byte>();
+            //byte[] dataToSend;
 
             switch (command)
             {
@@ -156,25 +170,25 @@ namespace TCPServerChat
                         {
                             if (connectedClient == client)
                             {
-                                listOfData.AddRange(BitConverter.GetBytes(data.Length));
-                                listOfData.AddRange(BitConverter.GetBytes((int)command));
-                                listOfData.AddRange(Encoding.UTF8.GetBytes(data));
+                                //listOfData.AddRange(BitConverter.GetBytes(data.Length));
+                                //listOfData.AddRange(BitConverter.GetBytes((int)command));
+                                //listOfData.AddRange(Encoding.UTF8.GetBytes(data));
 
-                                dataToSend = listOfData.ToArray();
+                                byte[] dataToSend = BuildMessage(data.Length, command, null, data);
                                 client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
-                                listOfData.Clear();
-                                Array.Clear(dataToSend, 0, dataToSend.Length);
+                                //listOfData.Clear();
+                                //Array.Clear(dataToSend, 0, dataToSend.Length);
                             }
                             else
                             {
-                                listOfData.AddRange(BitConverter.GetBytes(client.ClientName.Length));
-                                listOfData.AddRange(BitConverter.GetBytes((int)command));
-                                listOfData.AddRange(Encoding.UTF8.GetBytes(client.ClientName));
+                                //listOfData.AddRange(BitConverter.GetBytes(client.ClientName.Length));
+                                //listOfData.AddRange(BitConverter.GetBytes((int)command));
+                                //listOfData.AddRange(Encoding.UTF8.GetBytes(client.ClientName));
 
-                                dataToSend = listOfData.ToArray();
+                                byte[] dataToSend = BuildMessage(client.ClientName.Length, command, null, client.ClientName);
                                 connectedClient.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
-                                listOfData.Clear();
-                                Array.Clear(dataToSend, 0, dataToSend.Length);
+                                //listOfData.Clear();
+                                //Array.Clear(dataToSend, 0, dataToSend.Length);
                             }
                         }
 
@@ -182,12 +196,12 @@ namespace TCPServerChat
                     }
                 case Command.Remove:
                     {
-                        listOfData.AddRange(BitConverter.GetBytes(data.Length));
-                        listOfData.AddRange(BitConverter.GetBytes((int)command));
-                        listOfData.AddRange(client.clientNameBuffer);
-                        listOfData.AddRange(Encoding.UTF8.GetBytes(data));
+                        //listOfData.AddRange(BitConverter.GetBytes(data.Length));
+                        //listOfData.AddRange(BitConverter.GetBytes((int)command));
+                        //listOfData.AddRange(client.clientNameBuffer);
+                        //listOfData.AddRange(Encoding.UTF8.GetBytes(data));
 
-                        dataToSend = listOfData.ToArray();
+                        byte[] dataToSend = BuildMessage(data.Length, command, client.clientNameBuffer, data);
 
                         foreach (var clientForUpdate in clientList)
                         {
@@ -198,12 +212,12 @@ namespace TCPServerChat
                     }
                 case Command.Message:
                     {
-                        listOfData.AddRange(BitConverter.GetBytes(data.Length));
-                        listOfData.AddRange(BitConverter.GetBytes((int)command));
-                        listOfData.AddRange(client.clientNameBuffer);
-                        listOfData.AddRange(Encoding.UTF8.GetBytes(data));
+                        //listOfData.AddRange(BitConverter.GetBytes(data.Length));
+                        //listOfData.AddRange(BitConverter.GetBytes((int)command));
+                        //listOfData.AddRange(client.clientNameBuffer);
+                        //listOfData.AddRange(Encoding.UTF8.GetBytes(data));
 
-                        dataToSend = listOfData.ToArray();
+                        byte[] dataToSend = BuildMessage(data.Length, command, client.clientNameBuffer, data);
 
                         client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
                         Broadcast(client.Socket, dataToSend);

@@ -160,7 +160,6 @@ namespace TCPChatClient
                     case Command.Add:
                         {
                             string[] names = ReceiveClientListNames(state);
-
                             foreach (var name in names)
                             {
                                 ClientListBox.Items.Add(name);
@@ -171,6 +170,7 @@ namespace TCPChatClient
                     case Command.Remove:
                         {
                             ClientListBox.Items.Remove(GetClientName(state));
+                            ReceiveMessage(state);
                             break;
                         }
                     case Command.Message:
