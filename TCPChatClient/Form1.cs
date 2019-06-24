@@ -55,7 +55,10 @@ namespace TCPChatClient
         private void SendButton_Click(object sender, EventArgs e)
         {
             if (MessageTextBox.Text != string.Empty)
+            {
+                SendChosenClient(client);
                 SendMessage();
+            }
 
             MessageTextBox.Clear();
         }
@@ -162,7 +165,8 @@ namespace TCPChatClient
                             string[] names = ReceiveClientListNames(state);
                             foreach (var name in names)
                             {
-                                ClientListBox.Items.Add(name);
+                                if (!name.Equals(clientNameTextBox.Text))
+                                    ClientListBox.Items.Add(name);
                             }
 
                             break;
@@ -244,6 +248,18 @@ namespace TCPChatClient
             {
                 //ChatWriteLine(e.Message);
             }
+        }
+
+        public void SendChosenClient(Socket client)
+        {
+            byte[] name;
+
+            if (ClientListBox.SelectedItem != null)
+                name = Encoding.UTF8.GetBytes(ClientListBox.GetItemText(ClientListBox.SelectedItem.ToString()));
+            else
+                name = Encoding.UTF8.GetBytes(clientNameTextBox.Text);
+
+            client.BeginSend(name, 0, name.Length, 0, new AsyncCallback(SendCallback), client);
         }
 
         public void Send(Socket client, string data)
