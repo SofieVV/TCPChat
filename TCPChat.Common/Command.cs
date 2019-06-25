@@ -8,6 +8,8 @@ namespace TCPChat.Common
 {
     public enum Command
     {
+        Success,
+        Error,
         Add,
         Remove,
         Message

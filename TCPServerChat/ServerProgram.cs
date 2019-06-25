@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -65,12 +66,7 @@ namespace TCPServerChat
             StateObject state = new StateObject();
             state.client.Socket = client;
 
-            if (!clientList.Contains(state.client))
-            {
-                state.client.Socket.BeginReceive(state.client.clientNameBuffer, 0, Client.nameSize, 0, new AsyncCallback(ReadClientNameCallback), state);
-            }
-
-            client.BeginReceive(state.client.friendName, 0, Client.nameSize, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
+            state.client.Socket.BeginReceive(state.client.clientNameBuffer, 0, Client.nameSize, 0, new AsyncCallback(ReadClientNameCallback), state);
         }
 
         public static void ReadClientNameCallback(IAsyncResult ar)
@@ -80,16 +76,28 @@ namespace TCPServerChat
             try
             {
                 state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.nameSize));
-                state.client.ClientName = state.stringBuilder.ToString().TrimEnd('\0');
+                string clientName = state.stringBuilder.ToString().TrimEnd('\0');
 
-                clientList.Add(state.client);
+                if (GetClientNames(clientList.ToArray()).Contains(clientName))
+                {
+                    Array.Clear(state.client.clientNameBuffer, 0, Client.nameSize);
+                    state.client.Socket.Send(BitConverter.GetBytes((int)Command.Error));
+                    state.client.Socket.BeginReceive(state.client.clientNameBuffer, 0, Client.nameSize, 0, new AsyncCallback(ReadClientNameCallback), state);
+                }
+                else
+                {
+                    state.client.ClientName = clientName;
+                    state.client.Socket.Send(BitConverter.GetBytes((int)Command.Success));
+                    clientList.Add(state.client);
+                    Send(state.client, GetClientNames(clientList.ToArray()), Command.Add);
+                    state.client.Socket.BeginReceive(state.client.friendName, 0, Client.nameSize, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
+                }
+
                 state.stringBuilder.Clear();
-
-                Send(state.client, GetClientNames(clientList.ToArray()), Command.Add);
             }
             catch (Exception e)
             {
-
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -105,7 +113,7 @@ namespace TCPServerChat
                 state.stringBuilder.Clear();
                 client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadSizeCallback), state);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 clientList.RemoveAll(c => c.Socket == state.client.Socket);
                 Send(state.client, " ", Command.Remove);
@@ -148,7 +156,7 @@ namespace TCPServerChat
                     client.BeginReceive(state.client.friendName, 0, Client.nameSize, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("Client Disconnected.");
             }
@@ -171,12 +179,14 @@ namespace TCPServerChat
             listOfData.AddRange(Encoding.UTF8.GetBytes(message));
 
             return listOfData.ToArray();
-        } 
+        }
 
         public static void Send(Client client, string data, Command command)
         {
             try
             {
+                byte[] dataToSend;
+
                 switch (command)
                 {
                     case Command.Add:
@@ -185,12 +195,12 @@ namespace TCPServerChat
                             {
                                 if (connectedClient == client)
                                 {
-                                    byte[] dataToSend = BuildMessage(command, null, data);
+                                    dataToSend = BuildMessage(command, null, data);
                                     client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
                                 }
                                 else
                                 {
-                                    byte[] dataToSend = BuildMessage(command, null, client.ClientName);
+                                    dataToSend = BuildMessage(command, null, client.ClientName);
                                     connectedClient.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
                                 }
                             }
@@ -199,7 +209,7 @@ namespace TCPServerChat
                         }
                     case Command.Remove:
                         {
-                            byte[] dataToSend = BuildMessage(command, client.clientNameBuffer, data);
+                            dataToSend = BuildMessage(command, client.clientNameBuffer, data);
 
                             foreach (var clientForUpdate in clientList)
                             {
@@ -210,7 +220,7 @@ namespace TCPServerChat
                         }
                     case Command.Message:
                         {
-                            byte[] dataToSend = BuildMessage(command, client.clientNameBuffer, data);
+                            dataToSend = BuildMessage(command, client.clientNameBuffer, data);
                             client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
 
                             Broadcast(client, command, data);
@@ -219,13 +229,13 @@ namespace TCPServerChat
                         }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("All clients disconnected.");
             }
         }
 
-        public static void Broadcast (Client client, Command command, string data)
+        public static void Broadcast(Client client, Command command, string data)
         {
             var receivingClient = clientList.FirstOrDefault(c => c.ClientName.Equals(chosenClient));
 
@@ -233,19 +243,6 @@ namespace TCPServerChat
             {
                 var newMessage = BuildMessage(command, client.clientNameBuffer, data);
                 receivingClient.Socket.Send(newMessage);
-            }
-        }
-
-        public static void BroadcastCallback(IAsyncResult ar)
-        {
-            try
-            {
-                Socket client = (Socket)ar.AsyncState;
-                int bytesSent = client.EndSend(ar);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Client Disconnected.");
             }
         }
     }

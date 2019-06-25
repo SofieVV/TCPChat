@@ -29,50 +29,57 @@ namespace TCPChatClient
         {
             InitializeComponent();
         }
-        private void ConnectButton_Click(object sender, EventArgs e)
+        private void TCPClient_Load(object sender, EventArgs e)
         {
+            StartClient();
+        }
+        private void LoginButton_Click(object sender, EventArgs e)
+        {
+            StateObject state = new StateObject();
 
-            if (clientNameTextBox.Text.Length > Client.nameSize || clientNameTextBox.Text.Length <= 0)
+            if(clientNameTextBox.Text.Length <= 0)
+                MessageBox.Show("Please eneter an username.", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else if (clientNameTextBox.Text.Length > Client.nameSize)
             {
                 MessageBox.Show("Username must be shorter that 10 characters!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 clientNameTextBox.Clear();
             }
-            else if (ClientListBox.Items.Contains(clientNameTextBox.Text))
-            {
-                MessageBox.Show("Username is already taken!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                clientNameTextBox.Clear();
-            }
             else
             {
-                clientNameTextBox.ReadOnly = true;
-                ConnectButton.Enabled = false;
-                StartClient();
                 SendName(client, clientNameTextBox.Text);
-                Receive(client);
+                client.Receive(state.command, StateObject.enumCommand, SocketFlags.None);
+                Command command = (Command)BitConverter.ToInt32(state.command, 0);
+
+                switch (command)
+                {
+                    case Command.Success:
+                        {
+                            clientNameTextBox.ReadOnly = true;
+                            LoginButton.Enabled = false;
+                            Receive(client);
+                            break;
+                        }
+                    case Command.Error:
+                        {
+                            MessageBox.Show("Username is already taken!", "Invalid username!", MessageBoxButtons.OK);
+                            clientNameTextBox.Clear();
+                            break;
+                        }
+                }
             }
         }
 
         private void SendButton_Click(object sender, EventArgs e)
         {
-            if (MessageTextBox.Text != string.Empty)
+            if (ClientListBox.SelectedIndex == -1)
+                MessageBox.Show("Please choose a client to talk to.", "Invalid request!", MessageBoxButtons.OK);
+            else if(MessageTextBox.Text != string.Empty)
             {
                 SendChosenClient(client);
                 SendMessage();
             }
 
             MessageTextBox.Clear();
-        }
-
-        public void SendMessage()
-        {
-            try
-            {
-                Send(client, MessageTextBox.Text);
-            }
-            catch(Exception)
-            {
-                //ChatWriteLine("Please connect first.");
-            }
         }
 
         public void StartClient()
@@ -83,7 +90,7 @@ namespace TCPChatClient
             }
             catch (Exception)
             {
-                //ChatWriteLine("You are already connected.");
+                ChatWriteLine("You are already connected.");
             }
         }
 
@@ -94,9 +101,52 @@ namespace TCPChatClient
                 Socket client = (Socket)ar.AsyncState;
                 client.EndConnect(ar);
             }
+            catch (Exception)
+            {
+                ChatWriteLine("Server is down. Please try again later.");
+            }
+        }
+
+        public void SendMessage()
+        {
+            try
+            {
+                Send(client, MessageTextBox.Text);
+            }
+            catch (Exception)
+            {
+                ChatWriteLine("Please connect first.");
+            }
+        }
+
+        public void SendChosenClient(Socket client)
+        {
+            byte[] name = Encoding.UTF8.GetBytes(ClientListBox.GetItemText(ClientListBox.SelectedItem.ToString()));
+            client.BeginSend(name, 0, name.Length, 0, new AsyncCallback(SendCallback), client);
+
+        }
+
+        public void Send(Socket client, string data)
+        {
+            List<byte> listOfData = new List<byte>();
+
+            listOfData.AddRange(BitConverter.GetBytes(data.Length));
+            listOfData.AddRange(Encoding.UTF8.GetBytes(data));
+
+            var dataToSend = listOfData.ToArray();
+            client.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), client);
+        }
+
+        public void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket client = (Socket)ar.AsyncState;
+                client.EndSend(ar);
+            }
             catch (Exception e)
             {
-                //ChatWriteLine(e.Message);
+                ChatWriteLine(e.Message);
             }
         }
 
@@ -115,11 +165,11 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                //ChatWriteLine(e.Message);
+                ChatWriteLine(e.Message);
             }
         }
 
-        public void Receive (Socket client)
+        public void Receive(Socket client)
         {
             try
             {
@@ -129,7 +179,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                //ChatWriteLine(e.Message);
+                ChatWriteLine(e.Message);
             }
         }
 
@@ -148,7 +198,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                //ChatWriteLine(e.Message);
+                ChatWriteLine(e.Message);
             }
         }
 
@@ -187,7 +237,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                //ChatWriteLine(e.Message);
+                ChatWriteLine(e.Message);
             }
         }
 
@@ -196,7 +246,7 @@ namespace TCPChatClient
             try
             {
                 state.client.Socket.Receive(receivedMessageData, receivedMessageSize, SocketFlags.None);
-                string message = string.Empty; 
+                string message = string.Empty;
 
                 if (receivedMessageSize > 0)
                 {
@@ -237,7 +287,7 @@ namespace TCPChatClient
             }
         }
 
-        public void PrintMessage (StateObject state, string clientName)
+        public void PrintMessage(StateObject state, string clientName)
         {
             try
             {
@@ -246,43 +296,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                //ChatWriteLine(e.Message);
-            }
-        }
-
-        public void SendChosenClient(Socket client)
-        {
-            byte[] name;
-
-            if (ClientListBox.SelectedItem != null)
-                name = Encoding.UTF8.GetBytes(ClientListBox.GetItemText(ClientListBox.SelectedItem.ToString()));
-            else
-                name = Encoding.UTF8.GetBytes(clientNameTextBox.Text);
-
-            client.BeginSend(name, 0, name.Length, 0, new AsyncCallback(SendCallback), client);
-        }
-
-        public void Send(Socket client, string data)
-        {
-            List<byte> listOfData = new List<byte>();
-
-            listOfData.AddRange(BitConverter.GetBytes(data.Length));
-            listOfData.AddRange(Encoding.UTF8.GetBytes(data));
-
-            var dataToSend = listOfData.ToArray();
-            client.BeginSend(dataToSend, 0, dataToSend.Length, 0, new AsyncCallback(SendCallback), client);
-        }
-
-        public void SendCallback (IAsyncResult ar)
-        {
-            try
-            {
-                Socket client = (Socket)ar.AsyncState;
-                client.EndSend(ar);
-            }
-            catch (Exception e)
-            {
-                //ChatWriteLine(e.Message);
+                ChatWriteLine(e.Message);
             }
         }
 

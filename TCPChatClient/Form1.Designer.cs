@@ -32,7 +32,7 @@
             this.ClientListBox = new System.Windows.Forms.ListBox();
             this.SendButton = new System.Windows.Forms.Button();
             this.MessageTextBox = new System.Windows.Forms.TextBox();
-            this.ConnectButton = new System.Windows.Forms.Button();
+            this.LoginButton = new System.Windows.Forms.Button();
             this.clientNameTextBox = new System.Windows.Forms.TextBox();
             this.ClientNameLable = new System.Windows.Forms.Label();
             this.SuspendLayout();
@@ -76,16 +76,16 @@
             this.MessageTextBox.Size = new System.Drawing.Size(537, 45);
             this.MessageTextBox.TabIndex = 2;
             // 
-            // ConnectButton
+            // LoginButton
             // 
-            this.ConnectButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.ConnectButton.Location = new System.Drawing.Point(557, 5);
-            this.ConnectButton.Name = "ConnectButton";
-            this.ConnectButton.Size = new System.Drawing.Size(147, 38);
-            this.ConnectButton.TabIndex = 4;
-            this.ConnectButton.Text = "Connect ";
-            this.ConnectButton.UseVisualStyleBackColor = true;
-            this.ConnectButton.Click += new System.EventHandler(this.ConnectButton_Click);
+            this.LoginButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.LoginButton.Location = new System.Drawing.Point(557, 5);
+            this.LoginButton.Name = "LoginButton";
+            this.LoginButton.Size = new System.Drawing.Size(147, 38);
+            this.LoginButton.TabIndex = 4;
+            this.LoginButton.Text = "Login";
+            this.LoginButton.UseVisualStyleBackColor = true;
+            this.LoginButton.Click += new System.EventHandler(this.LoginButton_Click);
             // 
             // clientNameTextBox
             // 
@@ -113,13 +113,14 @@
             this.ClientSize = new System.Drawing.Size(715, 565);
             this.Controls.Add(this.ClientNameLable);
             this.Controls.Add(this.clientNameTextBox);
-            this.Controls.Add(this.ConnectButton);
+            this.Controls.Add(this.LoginButton);
             this.Controls.Add(this.SendButton);
             this.Controls.Add(this.MessageTextBox);
             this.Controls.Add(this.ClientListBox);
             this.Controls.Add(this.ChatTextBox);
             this.Name = "TCPClient";
             this.Text = "TCPClient";
+            this.Load += new System.EventHandler(this.TCPClient_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -131,7 +132,7 @@
         private System.Windows.Forms.ListBox ClientListBox;
         private System.Windows.Forms.Button SendButton;
         private System.Windows.Forms.TextBox MessageTextBox;
-        private System.Windows.Forms.Button ConnectButton;
+        private System.Windows.Forms.Button LoginButton;
         private System.Windows.Forms.TextBox clientNameTextBox;
         private System.Windows.Forms.Label ClientNameLable;
     }
