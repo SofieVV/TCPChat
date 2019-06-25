@@ -73,7 +73,7 @@ namespace TCPChatClient
         {
             if (ClientListBox.SelectedIndex == -1)
                 MessageBox.Show("Please choose a client to talk to.", "Invalid request!", MessageBoxButtons.OK);
-            else if(MessageTextBox.Text != string.Empty)
+            else if (MessageTextBox.Text != string.Empty)
             {
                 SendChosenClient(client);
                 SendMessage();
@@ -296,7 +296,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                ChatWriteLine(e.Message);
+                //ChatWriteLine(e.Message);
             }
         }
 
