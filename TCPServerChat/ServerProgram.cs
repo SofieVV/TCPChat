@@ -166,7 +166,8 @@ namespace TCPServerChat
         {
             List<byte> listOfData = new List<byte>();
 
-            listOfData.AddRange(BitConverter.GetBytes(message.Length));
+            int messageByteLength = Encoding.UTF8.GetByteCount(message);
+            listOfData.AddRange(BitConverter.GetBytes(messageByteLength));
             listOfData.AddRange(BitConverter.GetBytes((int)command));
             if (clientName != null)
                 listOfData.AddRange(clientName);

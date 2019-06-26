@@ -144,7 +144,8 @@ namespace TCPChatClient
         {
             List<byte> listOfData = new List<byte>();
 
-            listOfData.AddRange(BitConverter.GetBytes(data.Length));
+            int dataByteLength = Encoding.UTF8.GetByteCount(data);
+            listOfData.AddRange(BitConverter.GetBytes(dataByteLength));
             listOfData.AddRange(Encoding.UTF8.GetBytes(data));
 
             var dataToSend = listOfData.ToArray();
@@ -306,14 +307,15 @@ namespace TCPChatClient
             try
             {
                 response = ReceiveMessage(state);
+
                 if (clientName == clientNameTextBox.Text)
                 {
-                    ChatTextBox.SelectionColor = Color.BlueViolet;
+                    ChatTextBox.SelectionColor = Color.Crimson;
                     ChatWriteLine($"To {ClientListBox.SelectedItem.ToString()}: {response}");
                 }
                 else
                 {
-                    ChatTextBox.SelectionColor = Color.Crimson;
+                    ChatTextBox.SelectionColor = Color.Blue;
                     ChatWriteLine($"{clientName}: {response}");
                 }
             }
