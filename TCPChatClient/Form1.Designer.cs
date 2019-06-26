@@ -28,24 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.ChatTextBox = new System.Windows.Forms.TextBox();
             this.ClientListBox = new System.Windows.Forms.ListBox();
             this.SendButton = new System.Windows.Forms.Button();
             this.MessageTextBox = new System.Windows.Forms.TextBox();
             this.LoginButton = new System.Windows.Forms.Button();
             this.clientNameTextBox = new System.Windows.Forms.TextBox();
             this.ClientNameLable = new System.Windows.Forms.Label();
+            this.ChatTextBox = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
-            // 
-            // ChatTextBox
-            // 
-            this.ChatTextBox.Location = new System.Drawing.Point(13, 49);
-            this.ChatTextBox.Multiline = true;
-            this.ChatTextBox.Name = "ChatTextBox";
-            this.ChatTextBox.ReadOnly = true;
-            this.ChatTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.ChatTextBox.Size = new System.Drawing.Size(537, 436);
-            this.ChatTextBox.TabIndex = 0;
             // 
             // ClientListBox
             // 
@@ -105,19 +95,28 @@
             this.ClientNameLable.TabIndex = 6;
             this.ClientNameLable.Text = "Name:";
             // 
+            // ChatTextBox
+            // 
+            this.ChatTextBox.Location = new System.Drawing.Point(13, 49);
+            this.ChatTextBox.Name = "ChatTextBox";
+            this.ChatTextBox.ReadOnly = true;
+            this.ChatTextBox.Size = new System.Drawing.Size(537, 436);
+            this.ChatTextBox.TabIndex = 7;
+            this.ChatTextBox.Text = "";
+            // 
             // TCPClient
             // 
             this.AcceptButton = this.SendButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(715, 571);
+            this.Controls.Add(this.ChatTextBox);
             this.Controls.Add(this.ClientNameLable);
             this.Controls.Add(this.clientNameTextBox);
             this.Controls.Add(this.LoginButton);
             this.Controls.Add(this.SendButton);
             this.Controls.Add(this.MessageTextBox);
             this.Controls.Add(this.ClientListBox);
-            this.Controls.Add(this.ChatTextBox);
             this.Name = "TCPClient";
             this.Text = "TCPClient";
             this.Load += new System.EventHandler(this.TCPClient_Load);
@@ -127,14 +126,13 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.TextBox ChatTextBox;
         private System.Windows.Forms.ListBox ClientListBox;
         private System.Windows.Forms.Button SendButton;
         private System.Windows.Forms.TextBox MessageTextBox;
         private System.Windows.Forms.Button LoginButton;
         private System.Windows.Forms.TextBox clientNameTextBox;
         private System.Windows.Forms.Label ClientNameLable;
+        private System.Windows.Forms.RichTextBox ChatTextBox;
     }
 }
 

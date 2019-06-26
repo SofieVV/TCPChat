@@ -141,10 +141,10 @@ namespace TCPServerChat
             if (receivedMessageSize > 0)
                 {
                     state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
-                    content = ": " + state.stringBuilder.ToString();
+                    content = state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
-                    Console.WriteLine(state.client.ClientName + content);
+                    Console.WriteLine(state.client.ClientName + ": " + content);
                     Send(state.client, content, Command.Message);
 
                     Array.Clear(state.client.friendNameBuffer, 0, Client.nameSize);
@@ -178,48 +178,55 @@ namespace TCPServerChat
 
         public static void Send(Client client, string data, Command command)
         {
-            byte[] dataToSend;
-
-            switch (command)
+            try
             {
-                case Command.Add:
-                    {
-                        foreach (var connectedClient in clientList)
+                byte[] dataToSend;
+
+                switch (command)
+                {
+                    case Command.Add:
                         {
-                            if (connectedClient == client)
+                            foreach (var connectedClient in clientList)
                             {
-                                dataToSend = BuildMessage(command, null, data);
-                                client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                                if (connectedClient == client)
+                                {
+                                    dataToSend = BuildMessage(command, null, data);
+                                    client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                                }
+                                else
+                                {
+                                    dataToSend = BuildMessage(command, null, client.ClientName);
+                                    connectedClient.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                                }
                             }
-                            else
-                            {
-                                dataToSend = BuildMessage(command, null, client.ClientName);
-                                connectedClient.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
-                            }
+
+                            break;
                         }
-
-                        break;
-                    }
-                case Command.Remove:
-                    {
-                        dataToSend = BuildMessage(command, client.clientNameBuffer, data);
-
-                        foreach (var clientForUpdate in clientList)
+                    case Command.Remove:
                         {
-                            clientForUpdate.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                            dataToSend = BuildMessage(command, client.clientNameBuffer, data);
+
+                            foreach (var clientForUpdate in clientList)
+                            {
+                                clientForUpdate.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                            }
+
+                            break;
                         }
+                    case Command.Message:
+                        {
+                            dataToSend = BuildMessage(command, client.clientNameBuffer, data);
+                            client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
 
-                        break;
-                    }
-                case Command.Message:
-                    {
-                        dataToSend = BuildMessage(command, client.clientNameBuffer, data);
-                        client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                            Broadcast(client, command, data);
 
-                        Broadcast(client, command, data);
-
-                        break;
-                    }
+                            break;
+                        }
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Client Disconnected.");
             }
         }
 

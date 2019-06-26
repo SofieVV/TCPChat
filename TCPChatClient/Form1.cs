@@ -111,7 +111,7 @@ namespace TCPChatClient
         {
             try
             {
-                SendChosenClient(client, ClientListBox.SelectedIndex);
+                SendChosenClient(client);
                 Send(client, MessageTextBox.Text);
             }
             catch (Exception)
@@ -120,9 +120,21 @@ namespace TCPChatClient
             }
         }
 
-        public void SendChosenClient(Socket client, int index)
+        public string GetChosenNameFromClientList()
         {
-            string name = ClientListBox.Items[index].ToString();
+            string name;
+
+            if (ClientListBox.SelectedIndex != -1)
+                name = ClientListBox.SelectedItem.ToString();
+            else
+                name = string.Empty;
+
+            return name;
+        }
+
+        public void SendChosenClient(Socket client)
+        {
+            string name = GetChosenNameFromClientList();
             byte[] chosenName = Encoding.UTF8.GetBytes(name);
             client.BeginSend(chosenName, 0, chosenName.Length, 0, new AsyncCallback(SendCallback), client);
 
@@ -294,7 +306,16 @@ namespace TCPChatClient
             try
             {
                 response = ReceiveMessage(state);
-                ChatWriteLine(clientName + response);
+                if (clientName == clientNameTextBox.Text)
+                {
+                    ChatTextBox.SelectionColor = Color.BlueViolet;
+                    ChatWriteLine($"To {ClientListBox.SelectedItem.ToString()}: {response}");
+                }
+                else
+                {
+                    ChatTextBox.SelectionColor = Color.Crimson;
+                    ChatWriteLine($"{clientName}: {response}");
+                }
             }
             catch (Exception e)
             {
@@ -304,7 +325,7 @@ namespace TCPChatClient
 
         private void ChatWriteLine(string message)
         {
-            ChatTextBox.Text += message + Environment.NewLine;
+            ChatTextBox.AppendText(message + Environment.NewLine);
         }
     }
 }
