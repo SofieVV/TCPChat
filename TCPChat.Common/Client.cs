@@ -11,11 +11,9 @@ namespace TCPChat.Common
     {
         public const int nameSize = 10;
         public byte[] clientNameBuffer = new byte[nameSize];
-        public byte[] friendName = new byte[nameSize];
+        public byte[] friendNameBuffer = new byte[nameSize];
 
         public string ClientName { get; set; }
-
-        public string FriendName { get; set; }
 
         public Socket Socket { get; set; }
     }

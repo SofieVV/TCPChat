@@ -29,6 +29,7 @@ namespace TCPChatClient
         {
             InitializeComponent();
         }
+
         private void TCPClient_Load(object sender, EventArgs e)
         {
             StartClient();
@@ -75,7 +76,6 @@ namespace TCPChatClient
                 MessageBox.Show("Please choose a client to talk to.", "Invalid request!", MessageBoxButtons.OK);
             else if (MessageTextBox.Text != string.Empty)
             {
-                SendChosenClient(client);
                 SendMessage();
             }
 
@@ -111,6 +111,7 @@ namespace TCPChatClient
         {
             try
             {
+                SendChosenClient(client, ClientListBox.SelectedIndex);
                 Send(client, MessageTextBox.Text);
             }
             catch (Exception)
@@ -119,10 +120,11 @@ namespace TCPChatClient
             }
         }
 
-        public void SendChosenClient(Socket client)
+        public void SendChosenClient(Socket client, int index)
         {
-            byte[] name = Encoding.UTF8.GetBytes(ClientListBox.GetItemText(ClientListBox.SelectedItem.ToString()));
-            client.BeginSend(name, 0, name.Length, 0, new AsyncCallback(SendCallback), client);
+            string name = ClientListBox.Items[index].ToString();
+            byte[] chosenName = Encoding.UTF8.GetBytes(name);
+            client.BeginSend(chosenName, 0, chosenName.Length, 0, new AsyncCallback(SendCallback), client);
 
         }
 
@@ -296,7 +298,7 @@ namespace TCPChatClient
             }
             catch (Exception e)
             {
-                //ChatWriteLine(e.Message);
+                ChatWriteLine(e.Message);
             }
         }
 

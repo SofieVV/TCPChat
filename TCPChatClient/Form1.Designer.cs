@@ -110,7 +110,7 @@
             this.AcceptButton = this.SendButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(715, 565);
+            this.ClientSize = new System.Drawing.Size(715, 571);
             this.Controls.Add(this.ClientNameLable);
             this.Controls.Add(this.clientNameTextBox);
             this.Controls.Add(this.LoginButton);
