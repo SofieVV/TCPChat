@@ -94,9 +94,9 @@ namespace TCPServerChat
 
                 state.stringBuilder.Clear();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine("Client Disconnected.");
             }
         }
 
@@ -144,7 +144,7 @@ namespace TCPServerChat
                     content = state.stringBuilder.ToString();
                     state.stringBuilder.Clear();
 
-                    Console.WriteLine(state.client.ClientName + ": " + content);
+                    Console.WriteLine($"{state.client.ClientName} to {chosenClient}: {content}");
                     Send(state.client, content, Command.Message);
 
                     Array.Clear(state.client.friendNameBuffer, 0, Client.nameSize);
@@ -227,7 +227,6 @@ namespace TCPServerChat
             }
             catch (Exception)
             {
-                Console.WriteLine("Client Disconnected.");
             }
         }
 

@@ -42,7 +42,7 @@ namespace TCPChatClient
                 MessageBox.Show("Please eneter an username.", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             else if (clientNameTextBox.Text.Contains(" "))
             {
-                MessageBox.Show("Username can not contain empty spaces", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("Username can not contain empty spaces!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 clientNameTextBox.Clear();
             }
             else if (Encoding.UTF8.GetByteCount(clientNameTextBox.Text) > Client.nameSize)
@@ -75,14 +75,18 @@ namespace TCPChatClient
             }
         }
 
+        public void SendName(Socket client, string name)
+        {
+            byte[] nameData = Encoding.UTF8.GetBytes(name);
+            client.BeginSend(nameData, 0, nameData.Length, 0, new AsyncCallback(SendCallback), client);
+        }
+
         private void SendButton_Click(object sender, EventArgs e)
         {
             if (ClientListBox.SelectedIndex == -1)
                 MessageBox.Show("Please choose a client to talk to.", "Invalid request!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             else if (MessageTextBox.Text != string.Empty)
-            {
                 SendMessage();
-            }
 
             MessageTextBox.Clear();
         }
@@ -158,25 +162,6 @@ namespace TCPChatClient
         }
 
         public void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                Socket client = (Socket)ar.AsyncState;
-                client.EndSend(ar);
-            }
-            catch (Exception e)
-            {
-                ChatWriteLine(e.Message);
-            }
-        }
-
-        public void SendName(Socket client, string name)
-        {
-            byte[] nameData = Encoding.UTF8.GetBytes(name);
-            client.BeginSend(nameData, 0, nameData.Length, 0, new AsyncCallback(SendNameCallback), client);
-        }
-
-        public void SendNameCallback(IAsyncResult ar)
         {
             try
             {
@@ -316,7 +301,7 @@ namespace TCPChatClient
                 if (clientName == clientNameTextBox.Text)
                 {
                     ChatTextBox.SelectionColor = Color.Crimson;
-                    ChatWriteLine($"To {ClientListBox.SelectedItem.ToString()}: {response}");
+                    ChatWriteLine($"TO {ClientListBox.SelectedItem.ToString()}: {response}");
                 }
                 else
                 {
