@@ -45,7 +45,7 @@ namespace TCPChatClient
                 MessageBox.Show("Username can not contain empty spaces!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 clientNameTextBox.Clear();
             }
-            else if (Encoding.UTF8.GetByteCount(clientNameTextBox.Text) > Client.nameSize)
+            else if (Encoding.UTF8.GetByteCount(clientNameTextBox.Text) > Client.NAME_SIZE)
             {
                 MessageBox.Show("Username is too long!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 clientNameTextBox.Clear();
@@ -279,8 +279,8 @@ namespace TCPChatClient
         {
             try
             {
-                state.client.Socket.Receive(state.client.clientNameBuffer, Client.nameSize, SocketFlags.None);
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.nameSize));
+                state.client.Socket.Receive(state.client.clientNameBuffer, Client.NAME_SIZE, SocketFlags.None);
+                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.NAME_SIZE));
                 newClient = state.stringBuilder.ToString().TrimEnd('\0');
 
                 state.stringBuilder.Clear();

@@ -9,9 +9,9 @@ namespace TCPChat.Common
 {
     public class Client
     {
-        public const int nameSize = 20;
-        public byte[] clientNameBuffer = new byte[nameSize];
-        public byte[] friendNameBuffer = new byte[nameSize];
+        public const int NAME_SIZE = 20;
+        public byte[] clientNameBuffer = new byte[NAME_SIZE];
+        public byte[] friendNameBuffer = new byte[NAME_SIZE];
 
         public string ClientName { get; set; }
 
