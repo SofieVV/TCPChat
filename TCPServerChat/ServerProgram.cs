@@ -111,7 +111,7 @@ namespace TCPServerChat
                 stringBuilder.Append(Encoding.UTF8.GetString(state.client.friendNameBuffer, 0, Client.NAME_SIZE));
                 chosenClient = stringBuilder.ToString().TrimEnd('\0');
                 stringBuilder.Clear();
-                clientSocket.Receive(state.buffer, StateObject.bufferSize, SocketFlags.None);
+                clientSocket.Receive(state.buffer, StateObject.BUFFER_SIZE, SocketFlags.None);
                 ReadSize(state);
             }
             catch (Exception)

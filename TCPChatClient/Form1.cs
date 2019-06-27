@@ -54,7 +54,7 @@ namespace TCPChatClient
             else
             {
                 SendName(client, clientNameTextBox.Text);
-                client.Receive(state.command, StateObject.enumCommand, SocketFlags.None);
+                client.Receive(state.command, StateObject.COMMAND_SIZE, SocketFlags.None);
                 Command command = (Command)BitConverter.ToInt32(state.command, 0);
 
                 switch (command)
@@ -82,7 +82,7 @@ namespace TCPChatClient
         {
             if (ClientListBox.SelectedIndex == -1)
                 MessageBox.Show("Please choose a client to talk to.", "Invalid request!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            else if (MessageTextBox.Text != string.Empty)
+            else if (!string.IsNullOrWhiteSpace(MessageTextBox.Text))
                 SendMessage();
 
             MessageTextBox.Clear();
@@ -175,7 +175,7 @@ namespace TCPChatClient
             {
                 var state = new StateObject();
                 state.client.Socket = client;
-                client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
+                client.BeginReceive(state.buffer, 0, StateObject.BUFFER_SIZE, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
             }
             catch (Exception e)
             {
@@ -193,7 +193,7 @@ namespace TCPChatClient
                 receivedMessageSize = BitConverter.ToInt32(state.buffer, 0);
                 receivedMessageData = new byte[receivedMessageSize];
 
-                clientSocket.Receive(state.command, StateObject.enumCommand, SocketFlags.None);
+                clientSocket.Receive(state.command, StateObject.COMMAND_SIZE, SocketFlags.None);
                 ExecuteCommand(state);
             }
             catch (Exception e)
@@ -243,7 +243,7 @@ namespace TCPChatClient
                 if (receivedMessageSize > 0)
                 {
                     stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
-                    state.client.Socket.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
+                    state.client.Socket.BeginReceive(state.buffer, 0, StateObject.BUFFER_SIZE, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
                     message = stringBuilder.ToString();
                     stringBuilder.Clear();
                 }

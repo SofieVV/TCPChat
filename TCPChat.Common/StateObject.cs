@@ -10,9 +10,9 @@ namespace TCPChat.Common
     public class StateObject
     {
         public Client client = new Client();
-        public const int bufferSize = 4;
-        public const int enumCommand = 4;
-        public byte[] command = new byte[enumCommand];
-        public byte[] buffer = new byte[bufferSize];
+        public const int BUFFER_SIZE = 4;
+        public const int COMMAND_SIZE = 4;
+        public byte[] command = new byte[COMMAND_SIZE];
+        public byte[] buffer = new byte[BUFFER_SIZE];
     }
 }
