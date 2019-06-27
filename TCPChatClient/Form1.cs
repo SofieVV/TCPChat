@@ -38,11 +38,16 @@ namespace TCPChatClient
         {
             StateObject state = new StateObject();
 
-            if(clientNameTextBox.Text.Length <= 0)
-                MessageBox.Show("Please eneter an username.", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (clientNameTextBox.Text.Length <= 0)
+                MessageBox.Show("Please eneter an username.", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            else if (clientNameTextBox.Text.Contains(" "))
+            {
+                MessageBox.Show("Username can not contain empty spaces", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                clientNameTextBox.Clear();
+            }
             else if (Encoding.UTF8.GetByteCount(clientNameTextBox.Text) > Client.nameSize)
             {
-                MessageBox.Show("Username is too long!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Username is too long!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 clientNameTextBox.Clear();
             }
             else
@@ -62,7 +67,7 @@ namespace TCPChatClient
                         }
                     case Command.Error:
                         {
-                            MessageBox.Show("Username is already taken!", "Invalid username!", MessageBoxButtons.OK);
+                            MessageBox.Show("Username is already taken!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             clientNameTextBox.Clear();
                             break;
                         }
@@ -73,7 +78,7 @@ namespace TCPChatClient
         private void SendButton_Click(object sender, EventArgs e)
         {
             if (ClientListBox.SelectedIndex == -1)
-                MessageBox.Show("Please choose a client to talk to.", "Invalid request!", MessageBoxButtons.OK);
+                MessageBox.Show("Please choose a client to talk to.", "Invalid request!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             else if (MessageTextBox.Text != string.Empty)
             {
                 SendMessage();
