@@ -15,6 +15,7 @@ namespace TCPServerChat
     {
         private static ManualResetEvent allDone = new ManualResetEvent(false);
         private static List<Client> clientList = new List<Client>();
+        private static StringBuilder stringBuilder = new StringBuilder();
         private static string content = string.Empty;
         private const int port = 1020;
         private static int receivedMessageSize = 0;
@@ -75,8 +76,8 @@ namespace TCPServerChat
 
             try
             {
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.NAME_SIZE));
-                state.client.ClientName = state.stringBuilder.ToString().TrimEnd('\0');
+                stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.NAME_SIZE));
+                state.client.ClientName = stringBuilder.ToString().TrimEnd('\0');
 
                 if (GetClientNames(clientList.ToArray()).Contains(state.client.ClientName))
                 {
@@ -92,7 +93,7 @@ namespace TCPServerChat
                     state.client.Socket.BeginReceive(state.client.friendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
                 }
 
-                state.stringBuilder.Clear();
+                stringBuilder.Clear();
             }
             catch (Exception)
             {
@@ -106,9 +107,9 @@ namespace TCPServerChat
             Socket client = state.client.Socket;
             try
             {
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.friendNameBuffer, 0, Client.NAME_SIZE));
-                chosenClient = state.stringBuilder.ToString().TrimEnd('\0');
-                state.stringBuilder.Clear();
+                stringBuilder.Append(Encoding.UTF8.GetString(state.client.friendNameBuffer, 0, Client.NAME_SIZE));
+                chosenClient = stringBuilder.ToString().TrimEnd('\0');
+                stringBuilder.Clear();
                 client.Receive(state.buffer, StateObject.bufferSize, SocketFlags.None);
                 ReadSize(state);
             }
@@ -140,9 +141,9 @@ namespace TCPServerChat
 
             if (receivedMessageSize > 0)
                 {
-                    state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
-                    content = state.stringBuilder.ToString();
-                    state.stringBuilder.Clear();
+                    stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
+                    content = stringBuilder.ToString();
+                    stringBuilder.Clear();
 
                     Console.WriteLine($"{state.client.ClientName} to {chosenClient}: {content}");
                     Send(state.client, content, Command.Message);

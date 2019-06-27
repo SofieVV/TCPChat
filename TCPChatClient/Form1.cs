@@ -17,13 +17,14 @@ namespace TCPChatClient
     public partial class TCPClient : Form
     {
         private const int port = 1020;
-        private static string response = string.Empty;
+        private string response = string.Empty;
         private static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-        private static IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
-        private static Socket client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        private static int receivedMessageSize = 0;
-        private static byte[] receivedMessageData = null;
-        private static string newClient = string.Empty;
+        private IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
+        private Socket client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        private StringBuilder stringBuilder = new StringBuilder();
+        private int receivedMessageSize = 0;
+        private byte[] receivedMessageData = null;
+        private string newClient = string.Empty;
 
         public TCPClient()
         {
@@ -255,10 +256,10 @@ namespace TCPChatClient
 
                 if (receivedMessageSize > 0)
                 {
-                    state.stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
+                    stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
                     state.client.Socket.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
-                    message = state.stringBuilder.ToString();
-                    state.stringBuilder.Clear();
+                    message = stringBuilder.ToString();
+                    stringBuilder.Clear();
                 }
 
                 return message;
@@ -280,10 +281,10 @@ namespace TCPChatClient
             try
             {
                 state.client.Socket.Receive(state.client.clientNameBuffer, Client.NAME_SIZE, SocketFlags.None);
-                state.stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.NAME_SIZE));
-                newClient = state.stringBuilder.ToString().TrimEnd('\0');
+                stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.NAME_SIZE));
+                newClient = stringBuilder.ToString().TrimEnd('\0');
 
-                state.stringBuilder.Clear();
+                stringBuilder.Clear();
                 return newClient;
             }
             catch (Exception e)

@@ -14,6 +14,5 @@ namespace TCPChat.Common
         public const int enumCommand = 4;
         public byte[] command = new byte[enumCommand];
         public byte[] buffer = new byte[bufferSize];
-        public StringBuilder stringBuilder = new StringBuilder();
     }
 }
