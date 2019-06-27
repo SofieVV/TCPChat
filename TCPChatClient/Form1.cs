@@ -37,7 +37,7 @@ namespace TCPChatClient
         }
         private void LoginButton_Click(object sender, EventArgs e)
         {
-            StateObject state = new StateObject();
+            var state = new StateObject();
 
             if (clientNameTextBox.Text.Length <= 0)
                 MessageBox.Show("Please eneter an username.", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -60,18 +60,14 @@ namespace TCPChatClient
                 switch (command)
                 {
                     case Command.Success:
-                        {
-                            clientNameTextBox.ReadOnly = true;
-                            LoginButton.Enabled = false;
-                            Receive(client);
-                            break;
-                        }
+                        clientNameTextBox.ReadOnly = true;
+                        LoginButton.Enabled = false;
+                        Receive(client);
+                        break;
                     case Command.Error:
-                        {
-                            MessageBox.Show("Username is already taken!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            clientNameTextBox.Clear();
-                            break;
-                        }
+                        MessageBox.Show("Username is already taken!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        clientNameTextBox.Clear();
+                        break;
                 }
             }
         }
@@ -132,12 +128,10 @@ namespace TCPChatClient
 
         public string GetChosenNameFromClientList()
         {
-            string name;
+            string name = string.Empty;
 
             if (ClientListBox.SelectedIndex != -1)
                 name = ClientListBox.SelectedItem.ToString();
-            else
-                name = string.Empty;
 
             return name;
         }
@@ -152,7 +146,7 @@ namespace TCPChatClient
 
         public void Send(Socket client, string data)
         {
-            List<byte> listOfData = new List<byte>();
+            var listOfData = new List<byte>();
 
             int dataByteLength = Encoding.UTF8.GetByteCount(data);
             listOfData.AddRange(BitConverter.GetBytes(dataByteLength));
@@ -179,7 +173,7 @@ namespace TCPChatClient
         {
             try
             {
-                StateObject state = new StateObject();
+                var state = new StateObject();
                 state.client.Socket = client;
                 client.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
             }
@@ -191,15 +185,15 @@ namespace TCPChatClient
 
         public void RecieveMessageSizeCallback(IAsyncResult ar)
         {
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.client.Socket;
+            var state = (StateObject)ar.AsyncState;
+            var clientSocket = state.client.Socket;
 
             try
             {
                 receivedMessageSize = BitConverter.ToInt32(state.buffer, 0);
                 receivedMessageData = new byte[receivedMessageSize];
 
-                client.Receive(state.command, StateObject.enumCommand, SocketFlags.None);
+                clientSocket.Receive(state.command, StateObject.enumCommand, SocketFlags.None);
                 ExecuteCommand(state);
             }
             catch (Exception e)
@@ -217,28 +211,20 @@ namespace TCPChatClient
                 switch (command)
                 {
                     case Command.Add:
-                        {
-                            string[] names = ReceiveClientListNames(state);
-                            foreach (var name in names)
-                            {
-                                if (!name.Equals(clientNameTextBox.Text))
-                                    ClientListBox.Items.Add(name);
-                            }
+                        string[] names = ReceiveClientListNames(state);
+                        foreach (var clientName in names)
+                            if (!clientName.Equals(clientNameTextBox.Text))
+                                ClientListBox.Items.Add(clientName);
 
-                            break;
-                        }
+                        break;
                     case Command.Remove:
-                        {
-                            ClientListBox.Items.Remove(GetClientName(state));
-                            ReceiveMessage(state);
-                            break;
-                        }
+                        ClientListBox.Items.Remove(GetClientName(state));
+                        ReceiveMessage(state);
+                        break;
                     case Command.Message:
-                        {
-                            string name = GetClientName(state);
-                            PrintMessage(state, name);
-                            break;
-                        }
+                        string name = GetClientName(state);
+                        PrintMessage(state, name);
+                        break;
                 }
             }
             catch (Exception e)
