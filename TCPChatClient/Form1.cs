@@ -40,9 +40,9 @@ namespace TCPChatClient
 
             if(clientNameTextBox.Text.Length <= 0)
                 MessageBox.Show("Please eneter an username.", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            else if (clientNameTextBox.Text.Length > Client.nameSize)
+            else if (Encoding.UTF8.GetByteCount(clientNameTextBox.Text) > Client.nameSize)
             {
-                MessageBox.Show("Username must be shorter that 10 characters!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Username is too long!", "Invalid username!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 clientNameTextBox.Clear();
             }
             else

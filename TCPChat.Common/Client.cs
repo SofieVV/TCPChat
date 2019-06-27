@@ -9,7 +9,7 @@ namespace TCPChat.Common
 {
     public class Client
     {
-        public const int nameSize = 10;
+        public const int nameSize = 20;
         public byte[] clientNameBuffer = new byte[nameSize];
         public byte[] friendNameBuffer = new byte[nameSize];
 
