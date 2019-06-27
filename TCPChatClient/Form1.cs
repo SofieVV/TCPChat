@@ -54,8 +54,8 @@ namespace TCPChatClient
             else
             {
                 SendName(client, clientNameTextBox.Text);
-                client.Receive(state.command, StateObject.COMMAND_SIZE, SocketFlags.None);
-                Command command = (Command)BitConverter.ToInt32(state.command, 0);
+                client.Receive(state.Command, StateObject.COMMAND_SIZE, SocketFlags.None);
+                Command command = (Command)BitConverter.ToInt32(state.Command, 0);
 
                 switch (command)
                 {
@@ -174,8 +174,8 @@ namespace TCPChatClient
             try
             {
                 var state = new StateObject();
-                state.client.Socket = client;
-                client.BeginReceive(state.buffer, 0, StateObject.BUFFER_SIZE, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
+                state.Client.Socket = client;
+                client.BeginReceive(state.Buffer, 0, StateObject.BUFFER_SIZE, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
             }
             catch (Exception e)
             {
@@ -186,14 +186,14 @@ namespace TCPChatClient
         public void RecieveMessageSizeCallback(IAsyncResult ar)
         {
             var state = (StateObject)ar.AsyncState;
-            var clientSocket = state.client.Socket;
+            var clientSocket = state.Client.Socket;
 
             try
             {
-                receivedMessageSize = BitConverter.ToInt32(state.buffer, 0);
+                receivedMessageSize = BitConverter.ToInt32(state.Buffer, 0);
                 receivedMessageData = new byte[receivedMessageSize];
 
-                clientSocket.Receive(state.command, StateObject.COMMAND_SIZE, SocketFlags.None);
+                clientSocket.Receive(state.Command, StateObject.COMMAND_SIZE, SocketFlags.None);
                 ExecuteCommand(state);
             }
             catch (Exception e)
@@ -206,7 +206,7 @@ namespace TCPChatClient
         {
             try
             {
-                Command command = (Command)BitConverter.ToInt32(state.command, 0);
+                Command command = (Command)BitConverter.ToInt32(state.Command, 0);
 
                 switch (command)
                 {
@@ -237,13 +237,13 @@ namespace TCPChatClient
         {
             try
             {
-                state.client.Socket.Receive(receivedMessageData, receivedMessageSize, SocketFlags.None);
+                state.Client.Socket.Receive(receivedMessageData, receivedMessageSize, SocketFlags.None);
                 string message = string.Empty;
 
                 if (receivedMessageSize > 0)
                 {
                     stringBuilder.Append(Encoding.UTF8.GetString(receivedMessageData, 0, receivedMessageSize));
-                    state.client.Socket.BeginReceive(state.buffer, 0, StateObject.BUFFER_SIZE, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
+                    state.Client.Socket.BeginReceive(state.Buffer, 0, StateObject.BUFFER_SIZE, 0, new AsyncCallback(RecieveMessageSizeCallback), state);
                     message = stringBuilder.ToString();
                     stringBuilder.Clear();
                 }
@@ -266,8 +266,8 @@ namespace TCPChatClient
         {
             try
             {
-                state.client.Socket.Receive(state.client.clientNameBuffer, Client.NAME_SIZE, SocketFlags.None);
-                stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.NAME_SIZE));
+                state.Client.Socket.Receive(state.Client.ClientNameBuffer, Client.NAME_SIZE, SocketFlags.None);
+                stringBuilder.Append(Encoding.UTF8.GetString(state.Client.ClientNameBuffer, 0, Client.NAME_SIZE));
                 newClient = stringBuilder.ToString().TrimEnd('\0');
 
                 stringBuilder.Clear();

@@ -65,9 +65,9 @@ namespace TCPServerChat
             var client = listener.EndAccept(ar);
 
             var state = new StateObject();
-            state.client.Socket = client;
+            state.Client.Socket = client;
 
-            state.client.Socket.BeginReceive(state.client.clientNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadClientNameCallback), state);
+            state.Client.Socket.BeginReceive(state.Client.ClientNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadClientNameCallback), state);
         }
 
         public static void ReadClientNameCallback(IAsyncResult ar)
@@ -76,21 +76,21 @@ namespace TCPServerChat
 
             try
             {
-                stringBuilder.Append(Encoding.UTF8.GetString(state.client.clientNameBuffer, 0, Client.NAME_SIZE));
-                state.client.ClientName = stringBuilder.ToString().TrimEnd('\0');
+                stringBuilder.Append(Encoding.UTF8.GetString(state.Client.ClientNameBuffer, 0, Client.NAME_SIZE));
+                state.Client.ClientName = stringBuilder.ToString().TrimEnd('\0');
 
-                if (GetClientNames(clientList.ToArray()).Contains(state.client.ClientName))
+                if (GetClientNames(clientList.ToArray()).Contains(state.Client.ClientName))
                 {
-                    Array.Clear(state.client.clientNameBuffer, 0, Client.NAME_SIZE);
-                    state.client.Socket.Send(BitConverter.GetBytes((int)Command.Error));
-                    state.client.Socket.BeginReceive(state.client.clientNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadClientNameCallback), state);
+                    Array.Clear(state.Client.ClientNameBuffer, 0, Client.NAME_SIZE);
+                    state.Client.Socket.Send(BitConverter.GetBytes((int)Command.Error));
+                    state.Client.Socket.BeginReceive(state.Client.ClientNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadClientNameCallback), state);
                 }
                 else
                 {
-                    state.client.Socket.Send(BitConverter.GetBytes((int)Command.Success));
-                    clientList.Add(state.client);
-                    Send(state.client, GetClientNames(clientList.ToArray()), Command.Add);
-                    state.client.Socket.BeginReceive(state.client.friendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
+                    state.Client.Socket.Send(BitConverter.GetBytes((int)Command.Success));
+                    clientList.Add(state.Client);
+                    Send(state.Client, GetClientNames(clientList.ToArray()), Command.Add);
+                    state.Client.Socket.BeginReceive(state.Client.FriendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
                 }
 
                 stringBuilder.Clear();
@@ -104,20 +104,20 @@ namespace TCPServerChat
         public static void ReadChosenClientNameCallback(IAsyncResult ar)
         {
             var state = (StateObject)ar.AsyncState;
-            var clientSocket = state.client.Socket;
+            var clientSocket = state.Client.Socket;
 
             try
             {
-                stringBuilder.Append(Encoding.UTF8.GetString(state.client.friendNameBuffer, 0, Client.NAME_SIZE));
+                stringBuilder.Append(Encoding.UTF8.GetString(state.Client.FriendNameBuffer, 0, Client.NAME_SIZE));
                 chosenClient = stringBuilder.ToString().TrimEnd('\0');
                 stringBuilder.Clear();
-                clientSocket.Receive(state.buffer, StateObject.BUFFER_SIZE, SocketFlags.None);
+                clientSocket.Receive(state.Buffer, StateObject.BUFFER_SIZE, SocketFlags.None);
                 ReadSize(state);
             }
             catch (Exception)
             {
-                clientList.RemoveAll(c => c.Socket == state.client.Socket);
-                Send(state.client, " ", Command.Remove);
+                clientList.RemoveAll(c => c.Socket == state.Client.Socket);
+                Send(state.Client, " ", Command.Remove);
                 Console.WriteLine("Client Disconnected.");
             }
         }
@@ -126,7 +126,7 @@ namespace TCPServerChat
         {
             try
             {
-                receivedMessageSize = BitConverter.ToInt32(state.buffer, 0);
+                receivedMessageSize = BitConverter.ToInt32(state.Buffer, 0);
                 receivedMessageData = new byte[receivedMessageSize];
                 ReadMessage(state);
             }
@@ -138,7 +138,7 @@ namespace TCPServerChat
         {
             try
             {
-                state.client.Socket.Receive(receivedMessageData, receivedMessageSize, SocketFlags.None);
+                state.Client.Socket.Receive(receivedMessageData, receivedMessageSize, SocketFlags.None);
 
                 if (receivedMessageSize > 0)
                 {
@@ -146,11 +146,11 @@ namespace TCPServerChat
                     content = stringBuilder.ToString();
                     stringBuilder.Clear();
 
-                    Console.WriteLine($"{state.client.ClientName} to {chosenClient}: {content}");
-                    Send(state.client, content, Command.Message);
+                    Console.WriteLine($"{state.Client.ClientName} to {chosenClient}: {content}");
+                    Send(state.Client, content, Command.Message);
 
-                    Array.Clear(state.client.friendNameBuffer, 0, Client.NAME_SIZE);
-                    state.client.Socket.BeginReceive(state.client.friendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
+                    Array.Clear(state.Client.FriendNameBuffer, 0, Client.NAME_SIZE);
+                    state.Client.Socket.BeginReceive(state.Client.FriendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
                 }
             }
             catch (Exception)
@@ -199,14 +199,14 @@ namespace TCPServerChat
 
                         break;
                     case Command.Remove:
-                        dataToSend = BuildMessage(command, client.clientNameBuffer, data);
+                        dataToSend = BuildMessage(command, client.ClientNameBuffer, data);
 
                         foreach (var clientForUpdate in clientList)
                             clientForUpdate.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
 
                         break;
                     case Command.Message:
-                        dataToSend = BuildMessage(command, client.clientNameBuffer, data);
+                        dataToSend = BuildMessage(command, client.ClientNameBuffer, data);
                         client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
 
                         Broadcast(client, command, data);
@@ -223,7 +223,7 @@ namespace TCPServerChat
         {
             Client receivingClient = clientList.FirstOrDefault(c => c.ClientName.Equals(chosenClient));
 
-            byte[] newMessage = BuildMessage(command, client.clientNameBuffer, data);
+            byte[] newMessage = BuildMessage(command, client.ClientNameBuffer, data);
             receivingClient.Socket.Send(newMessage);
         }
     }
