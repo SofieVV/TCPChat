@@ -122,7 +122,7 @@ namespace TCPChatClient
             }
             catch (Exception)
             {
-                ChatWriteLine("Please connect first.");
+                ChatWriteLine("A problem occurred while sending your message.");
             }
         }
 
