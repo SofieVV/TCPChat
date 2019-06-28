@@ -33,9 +33,8 @@ namespace TCPServerChat
 
             var ipAddress = IPAddress.Parse("127.0.0.1");
             var localEndPoint = new IPEndPoint(ipAddress, port);
-
-            var listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             Console.Write($"Waiting for connection...{Environment.NewLine}");
+            var listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
@@ -89,6 +88,7 @@ namespace TCPServerChat
                 {
                     state.Client.Socket.Send(BitConverter.GetBytes((int)Command.Success));
                     clientList.Add(state.Client);
+                    Console.WriteLine($"{state.Client.ClientName} has logged in.");
                     Send(state.Client, GetClientNames(clientList.ToArray()), Command.Add);
                     state.Client.Socket.BeginReceive(state.Client.FriendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
                 }
@@ -118,6 +118,7 @@ namespace TCPServerChat
             {
                 clientList.RemoveAll(c => c.Socket == state.Client.Socket);
                 Send(state.Client, " ", Command.Remove);
+                Console.WriteLine($"{state.Client.ClientName} has logged out.");
                 Console.WriteLine("Client Disconnected.");
             }
         }
@@ -194,7 +195,7 @@ namespace TCPServerChat
                                 dataToSend = BuildMessage(command, null, data);
                             else
                                 dataToSend = BuildMessage(command, null, client.ClientName);
-                            connectedClient.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                            connectedClient.Socket.Send(dataToSend);
                         }
 
                         break;
@@ -202,12 +203,12 @@ namespace TCPServerChat
                         dataToSend = BuildMessage(command, client.ClientNameBuffer, data);
 
                         foreach (var clientForUpdate in clientList)
-                            clientForUpdate.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                            clientForUpdate.Socket.Send(dataToSend);
 
                         break;
                     case Command.Message:
                         dataToSend = BuildMessage(command, client.ClientNameBuffer, data);
-                        client.Socket.Send(dataToSend, dataToSend.Length, SocketFlags.None);
+                        client.Socket.Send(dataToSend);
 
                         Broadcast(client, command, data);
 
