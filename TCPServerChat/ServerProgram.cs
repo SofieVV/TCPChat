@@ -79,7 +79,7 @@ namespace TCPServerChat
                 stringBuilder.Append(Encoding.UTF8.GetString(state.Client.ClientNameBuffer, 0, Client.NAME_SIZE));
                 state.Client.ClientName = stringBuilder.ToString().TrimEnd('\0');
 
-                if (GetClientNames(clientList.ToArray()).Contains(state.Client.ClientName))
+                if (clientList.Any(client => client.ClientName == state.Client.ClientName))
                 {
                     Array.Clear(state.Client.ClientNameBuffer, 0, Client.NAME_SIZE);
                     state.Client.Socket.Send(BitConverter.GetBytes((int)Command.Error));
