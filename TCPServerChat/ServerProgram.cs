@@ -50,7 +50,7 @@ namespace TCPServerChat
                     Console.WriteLine("CLIENT CONNECTED.");
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Console.WriteLine("CLIENT DISCONNECTED.");
             }
@@ -95,7 +95,7 @@ namespace TCPServerChat
 
                 stringBuilder.Clear();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Console.WriteLine("CLIENT DISCONNECTED.");
             }
@@ -114,7 +114,7 @@ namespace TCPServerChat
                 clientSocket.Receive(state.Buffer, StateObject.BUFFER_SIZE, SocketFlags.None);
                 ReadSize(state);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 clientList.RemoveAll(c => c.Socket == state.Client.Socket);
                 Send(state.Client, string.Empty, Command.Remove);
@@ -131,7 +131,7 @@ namespace TCPServerChat
                 receivedMessageData = new byte[receivedMessageSize];
                 ReadMessage(state);
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
         }
@@ -154,7 +154,7 @@ namespace TCPServerChat
                     state.Client.Socket.BeginReceive(state.Client.FriendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Console.WriteLine("CLIENT DISCONNECTED.");
             }
@@ -200,10 +200,12 @@ namespace TCPServerChat
 
                         break;
                     case Command.Remove:
-                        dataToSend = BuildMessage(command, client.ClientNameBuffer, data);
-
-                        foreach (var clientForUpdate in clientList)
-                            clientForUpdate.Socket.Send(dataToSend);
+                        if (clientList.Count > 0)
+                        {
+                            dataToSend = BuildMessage(command, client.ClientNameBuffer, data);
+                            foreach (var clientForUpdate in clientList)
+                                clientForUpdate.Socket.Send(dataToSend);
+                        }
 
                         break;
                     case Command.Message:
@@ -215,7 +217,7 @@ namespace TCPServerChat
                         break;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
         }
