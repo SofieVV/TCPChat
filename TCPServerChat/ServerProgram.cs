@@ -47,12 +47,12 @@ namespace TCPServerChat
                     listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
                     allDone.WaitOne();
-                    Console.WriteLine("Client Connected.");
+                    Console.WriteLine("CLIENT CONNECTED.");
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine("Client Disconnected.");
+                Console.WriteLine("CLIENT DISCONNECTED.");
             }
         }
 
@@ -97,7 +97,7 @@ namespace TCPServerChat
             }
             catch (Exception)
             {
-                Console.WriteLine("Client Disconnected.");
+                Console.WriteLine("CLIENT DISCONNECTED.");
             }
         }
 
@@ -117,9 +117,9 @@ namespace TCPServerChat
             catch (Exception)
             {
                 clientList.RemoveAll(c => c.Socket == state.Client.Socket);
-                Send(state.Client, " ", Command.Remove);
+                Send(state.Client, string.Empty, Command.Remove);
                 Console.WriteLine($"{state.Client.ClientName} has logged out.");
-                Console.WriteLine("Client Disconnected.");
+                Console.WriteLine("CLIENT DISCONNECTED.");
             }
         }
 
@@ -156,7 +156,7 @@ namespace TCPServerChat
             }
             catch (Exception)
             {
-                Console.WriteLine("Client Disconnected.");
+                Console.WriteLine("CLIENT DISCONNECTED.");
             }
         }
 
