@@ -50,7 +50,7 @@ namespace TCPServerChat
                     Console.WriteLine("CLIENT CONNECTED.");
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("CLIENT DISCONNECTED.");
             }
@@ -95,7 +95,7 @@ namespace TCPServerChat
 
                 stringBuilder.Clear();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("CLIENT DISCONNECTED.");
             }
@@ -114,10 +114,10 @@ namespace TCPServerChat
                 clientSocket.Receive(state.Buffer, StateObject.BUFFER_SIZE, SocketFlags.None);
                 ReadSize(state);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 clientList.RemoveAll(c => c.Socket == state.Client.Socket);
-                Send(state.Client, string.Empty, Command.Remove);
+                Send(state.Client, " ", Command.Remove);
                 Console.WriteLine($"{state.Client.ClientName} has logged out.");
                 Console.WriteLine("CLIENT DISCONNECTED.");
             }
@@ -131,7 +131,7 @@ namespace TCPServerChat
                 receivedMessageData = new byte[receivedMessageSize];
                 ReadMessage(state);
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
         }
@@ -154,7 +154,7 @@ namespace TCPServerChat
                     state.Client.Socket.BeginReceive(state.Client.FriendNameBuffer, 0, Client.NAME_SIZE, 0, new AsyncCallback(ReadChosenClientNameCallback), state);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("CLIENT DISCONNECTED.");
             }
@@ -217,7 +217,7 @@ namespace TCPServerChat
                         break;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
         }
