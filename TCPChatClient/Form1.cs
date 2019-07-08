@@ -292,9 +292,7 @@ namespace TCPChatClient
                 }
                 else
                 {
-                    if (clientName == GetChosenNameFromClientList())
-                        ChatTextBox.SelectionColor = Color.Blue;
-
+                    ChatTextBox.SelectionColor = Color.Blue;
                     ChatWriteLine($"{clientName}: {response}");
                 }
             }
